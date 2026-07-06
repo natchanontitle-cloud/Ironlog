@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRON LOG — Trainer Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#121212; --card:#1b1b1b; --card2:#232323; --line:#2f2f2f;
+    --text:#eeeeea; --muted:#8a8a86; --accent:#ff5b2e; --good:#4ade80;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; padding-bottom:80px;}
+  h1,.disp{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:0.03em;}
+  header{padding:16px 16px 12px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:var(--bg); z-index:11;}
+  header h1{font-size:20px; margin:0; font-weight:700;}
+  header h1 span{color:var(--accent);}
+  #gearBtn{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:6px;}
+
+  .clientBar{display:flex; gap:8px; align-items:center; padding:10px 14px; border-bottom:1px solid var(--line); background:#161616; position:sticky; top:53px; z-index:10;}
+  .clientBar select{flex:1; background:var(--card); border:1px solid var(--line); color:var(--text); padding:9px 10px; border-radius:8px; font-size:14px; font-weight:600;}
+  .clientBar button{background:var(--card2); border:1px solid var(--line); color:var(--accent); padding:9px 12px; border-radius:8px; font-size:13px; cursor:pointer; font-family:'Oswald'; white-space:nowrap;}
+
+  .tabs{display:flex; gap:0; overflow-x:auto; border-bottom:1px solid var(--line); background:var(--bg); position:sticky; top:106px; z-index:9;}
+  .tab{flex:0 0 auto; padding:10px 14px; font-family:'Oswald',sans-serif; font-size:12.5px; letter-spacing:0.03em; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap;}
+  .tab.active{color:var(--text); border-bottom:2px solid var(--accent);}
+  main{padding:14px 14px 0;}
+
+  .dateRow{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+  .dateRow input[type=date]{background:var(--card); border:1px solid var(--line); color:var(--text); padding:8px 10px; border-radius:8px; font-size:14px;}
+  .badge{display:inline-block; background:var(--accent); color:#1a0d08; font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; margin-left:6px; font-family:'Oswald';}
+
+  .exCard{background:var(--card); border:1px solid var(--line); border-radius:12px; margin-bottom:10px; overflow:hidden;}
+  .exHead{padding:12px 14px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;}
+  .exHead .name{font-weight:600; font-size:14.5px;}
+  .exHead .count{color:var(--muted); font-size:12px;}
+  .exBody{display:none; padding:0 14px 14px; border-top:1px solid var(--line);}
+  .exBody.open{display:block;}
+  .setRow{display:flex; gap:8px; align-items:center; margin-top:10px;}
+  .setRow input{width:100%; background:var(--card2); border:1px solid var(--line); color:var(--text); padding:9px 10px; border-radius:8px; font-size:14px;}
+  .setRow .x{color:var(--muted); font-size:13px;}
+  .addBtn{margin-top:10px; width:100%; background:var(--accent); color:#1a0d08; border:none; padding:10px; border-radius:8px; font-weight:700; font-family:'Oswald'; letter-spacing:0.03em; cursor:pointer; font-size:13px;}
+  .todaySets{margin-top:10px; display:flex; flex-direction:column; gap:6px;}
+  .todaySets .row{display:flex; justify-content:space-between; background:var(--card2); padding:7px 10px; border-radius:6px; font-size:13px;}
+  .todaySets .row button{background:none; border:none; color:var(--muted); cursor:pointer; font-size:13px;}
+
+  #historyView,#settingsView,#progressView,#scheduleView,#clientsView{display:none;}
+  .histEntry{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:8px;}
+  .histEntry .d{color:var(--accent); font-size:12px; font-weight:700; font-family:'Oswald';}
+  .histEntry .ex{font-weight:600; font-size:14px; margin-top:2px;}
+  .histEntry .sets{color:var(--muted); font-size:13px; margin-top:3px;}
+  .actionRow{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
+  .actionRow button{flex:1; background:var(--card2); color:var(--text); border:1px solid var(--line); padding:10px; border-radius:8px; font-size:13px; cursor:pointer; font-family:'Oswald'; letter-spacing:0.02em;}
+  .actionRow button.primary{background:var(--accent); color:#1a0d08; border:none; font-weight:700;}
+
+  .settingsBox,.progCard,.clientCard{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:12px;}
+  .settingsBox label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px;}
+  .settingsBox input{width:100%; background:var(--card2); border:1px solid var(--line); color:var(--text); padding:10px; border-radius:8px; font-size:13px; margin-bottom:12px;}
+  .settingsBox p{font-size:12.5px; color:var(--muted); line-height:1.5;}
+
+  .progSelect{width:100%; background:var(--card); border:1px solid var(--line); color:var(--text); padding:10px; border-radius:8px; font-size:14px; margin-bottom:14px;}
+  .progStats{display:flex; gap:10px; margin-bottom:10px;}
+  .progStat{flex:1; background:var(--card2); border-radius:8px; padding:10px; text-align:center;}
+  .progStat .v{font-family:'Oswald'; font-size:18px; font-weight:700; color:var(--accent);}
+  .progStat .l{font-size:10.5px; color:var(--muted); letter-spacing:0.04em; text-transform:uppercase; margin-top:2px;}
+  .chartWrap{width:100%; overflow-x:auto;}
+
+  .dayRow{display:flex; justify-content:space-between; align-items:center; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-bottom:8px; cursor:pointer;}
+  .dayRow .dname{font-family:'Oswald'; font-weight:700; font-size:14px;}
+  .dayRow .dcount{color:var(--muted); font-size:12px;}
+  .pickerOverlay{position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:flex-end; z-index:20;}
+  .pickerOverlay.open{display:flex;}
+  .pickerSheet{background:var(--bg); width:100%; max-height:80vh; overflow-y:auto; border-radius:16px 16px 0 0; padding:16px; border-top:1px solid var(--line);}
+  .pickerSheet h3{margin:0 0 10px; font-size:15px;}
+  .pickerGroup{margin-bottom:10px;}
+  .pickerGroup .gname{color:var(--muted); font-size:11px; letter-spacing:0.06em; margin-bottom:6px; font-family:'Oswald';}
+  .pickerRow{display:flex; align-items:center; gap:10px; padding:8px 4px; font-size:14px;}
+  .pickerRow input{width:18px; height:18px;}
+  .pickerActions{display:flex; gap:8px; margin-top:12px; position:sticky; bottom:0; background:var(--bg); padding-top:8px;}
+  .pickerActions button{flex:1; padding:11px; border-radius:8px; border:none; font-family:'Oswald'; font-weight:700; cursor:pointer;}
+  .pickerActions .save{background:var(--accent); color:#1a0d08;}
+  .pickerActions .cancel{background:var(--card2); color:var(--text);}
+
+  .clientCard{display:flex; justify-content:space-between; align-items:center;}
+  .clientCard .cname{font-weight:600; font-size:15px;}
+  .clientCard .cmeta{color:var(--muted); font-size:12px; margin-top:2px;}
+  .clientCard button{background:none; border:1px solid var(--line); color:var(--muted); padding:6px 10px; border-radius:6px; font-size:12px; cursor:pointer;}
+  .addClientRow{display:flex; gap:8px; margin-bottom:14px;}
+  .addClientRow input{flex:1; background:var(--card); border:1px solid var(--line); color:var(--text); padding:10px; border-radius:8px; font-size:14px;}
+  .addClientRow button{background:var(--accent); color:#1a0d08; border:none; padding:0 16px; border-radius:8px; font-weight:700; cursor:pointer; font-family:'Oswald';}
+
+  .toast{position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:var(--card2); border:1px solid var(--line); color:var(--text); padding:10px 18px; border-radius:20px; font-size:13px; opacity:0; transition:opacity .2s; z-index:50;}
+  .toast.show{opacity:1;}
+  .empty{color:var(--muted); text-align:center; padding:30px 10px; font-size:13px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1 onclick="goHome()" style="cursor:pointer;">IRON <span>LOG</span></h1>
+  <button id="gearBtn" onclick="showView('settings')">⚙</button>
+</header>
+
+<div class="clientBar">
+  <select id="clientSelect" onchange="onClientChange()"></select>
+  <button onclick="showView('clients')">Clients</button>
+</div>
+
+<div class="tabs" id="tabs"></div>
+
+<main>
+  <div id="logView">
+    <div class="dateRow"><input type="date" id="dateInput"></div>
+    <div id="exerciseList"></div>
+  </div>
+
+  <div id="scheduleView">
+    <p class="empty" style="padding:0 0 12px; text-align:left;">Tap a day to assign which exercises this client trains.</p>
+    <div id="dayList"></div>
+  </div>
+
+  <div id="progressView">
+    <select class="progSelect" id="progCatSelect" onchange="onProgCatChange()"></select>
+    <select class="progSelect" id="progExSelect" onchange="renderProgress()"></select>
+    <div class="progCard">
+      <div class="progStats" id="progStats"></div>
+      <div class="chartWrap"><svg id="progChart" width="100%" height="200"></svg></div>
+    </div>
+  </div>
+
+  <div id="historyView">
+    <div class="actionRow">
+      <button class="primary" onclick="syncToSheet()">Sync to Sheet</button>
+      <button onclick="copyForSheets()">Copy as CSV</button>
+    </div>
+    <div id="historyList"></div>
+  </div>
+
+  <div id="clientsView">
+    <div class="addClientRow">
+      <input id="newClientName" placeholder="New client name">
+      <button onclick="addClient()">Add</button>
+    </div>
+    <div id="clientsList"></div>
+  </div>
+
+  <div id="settingsView">
+    <div class="settingsBox">
+      <label>Google Apps Script Web App URL</label>
+      <input id="scriptUrlInput" placeholder="https://script.google.com/macros/s/xxxx/exec">
+      <button class="addBtn" onclick="saveSettings()">Save</button>
+      <p style="margin-top:14px;">Paste the Web App URL from your deployed Apps Script here to enable
+      "Sync to Sheet" on the History tab. Each row includes the client name.</p>
+    </div>
+  </div>
+</main>
+
+<div class="pickerOverlay" id="pickerOverlay">
+  <div class="pickerSheet">
+    <h3 id="pickerTitle">Assign exercises</h3>
+    <div id="pickerBody"></div>
+    <div class="pickerActions">
+      <button class="cancel" onclick="closePicker()">Cancel</button>
+      <button class="save" onclick="savePicker()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const GROUPS = {
+  "Chest": ["Incline Barbell Press","Incline Dumbbell Press","Flat Barbell Press","Flat Dumbbell Press","Decline Dumbbell Press","Incline Cable Fly","Machine Lower Chest","Machine Fly"],
+  "Triceps": ["Tricep Behind Neck","EZ Bar Tricep Extension","Tricep Cable Extension (Rope)"],
+  "Shoulders": ["Dumbbell Shoulder Press","Machine Shoulder Press","Front Raise","Side Lateral Raise","Seated Rear Lateral Raise","Machine Reverse Fly"],
+  "Biceps": ["EZ Bar Bicep Curl","Bicep Preacher Curl","One Arm Dumbbell Curl","Hammer Curl"],
+  "Back": ["Pull Up","Wide Grip Pull Down","Wide Grip Seated Row","Close Grip Pull Down","Close Grip Seated Row","One Arm Dumbbell Row","Back Extension"],
+  "Legs": ["Squat","Leg Extension","Leg Curl","Adduction","Abduction","Toe Raise","Deadlift"],
+  "Abs": ["Leg Raise","Abs Crunch Machine","Cross Crunch","Abs Wheel Roller"]
+};
+const CATS = Object.keys(GROUPS);
+const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+let currentCat = CATS[0];
+let currentView = "log";
+let clients = [];
+let activeClientId = null;
+let entries = [];
+let schedules = {};
+let settings = { scriptUrl: "" };
+let pickerDay = null;
+let storageBroken = false;
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function weekdayOf(dateStr){
+  const d = new Date(dateStr + "T00:00:00");
+  const idx = (d.getDay()+6)%7; // Mon=0
+  return DAYS[idx];
+}
+function uid(){ return Date.now()+Math.random().toString(16).slice(2); }
+
+async function loadData(){
+  try{ const r = await window.storage.get('clients'); clients = r ? JSON.parse(r.value) : []; }catch(e){ clients = []; }
+  try{ const r = await window.storage.get('activeClientId'); activeClientId = r ? JSON.parse(r.value) : null; }catch(e){ activeClientId = null; }
+  try{ const r = await window.storage.get('entries'); entries = r ? JSON.parse(r.value) : []; }catch(e){ entries = []; }
+  try{ const r = await window.storage.get('schedules'); schedules = r ? JSON.parse(r.value) : {}; }catch(e){ schedules = {}; }
+  try{ const r = await window.storage.get('settings'); settings = r ? JSON.parse(r.value) : {scriptUrl:""}; }catch(e){ settings = {scriptUrl:""}; }
+
+  if(clients.length===0){
+    clients.push({id: uid(), name: "Me"});
+    await saveClients();
+  }
+  if(!activeClientId || !clients.find(c=>c.id===activeClientId)){
+    activeClientId = clients[0].id;
+    await saveActiveClient();
+  }
+  document.getElementById('scriptUrlInput').value = settings.scriptUrl || "";
+}
+async function safeSet(key, val){
+  try{ await window.storage.set(key, JSON.stringify(val)); }
+  catch(e){ console.warn('storage save failed for', key, e); storageBroken = true; }
+}
+async function saveClients(){ await safeSet('clients', clients); }
+async function saveActiveClient(){ await safeSet('activeClientId', activeClientId); }
+async function saveEntries(){ await safeSet('entries', entries); }
+async function saveSchedules(){ await safeSet('schedules', schedules); }
+async function saveSettingsData(){ await safeSet('settings', settings); }
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+function renderClientSelect(){
+  const sel = document.getElementById('clientSelect');
+  sel.innerHTML = "";
+  clients.forEach(c=>{
+    const opt = document.createElement('option');
+    opt.value = c.id; opt.textContent = c.name;
+    if(c.id===activeClientId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function onClientChange(){
+  activeClientId = document.getElementById('clientSelect').value;
+  saveActiveClient();
+  currentCat = CATS[0];
+  showView('log');
+}
+
+function goHome(){
+  currentCat = CATS[0];
+  showView('log');
+}
+
+async function addClient(){
+  const input = document.getElementById('newClientName');
+  const name = input.value.trim();
+  if(!name){ toast('Enter a client name'); return; }
+  const c = {id: uid(), name};
+  clients.push(c);
+  await saveClients();
+  activeClientId = c.id;
+  await saveActiveClient();
+  input.value = "";
+  renderClientSelect();
+  renderClientsList();
+  toast(`Added ${name}`);
+}
+
+async function removeClient(id){
+  if(clients.length<=1){ toast("Keep at least one client"); return; }
+  clients = clients.filter(c=>c.id!==id);
+  await saveClients();
+  if(activeClientId===id){ activeClientId = clients[0].id; await saveActiveClient(); }
+  renderClientSelect();
+  renderClientsList();
+  showView('clients');
+}
+
+function renderClientsList(){
+  const list = document.getElementById('clientsList');
+  list.innerHTML = "";
+  clients.forEach(c=>{
+    const n = entries.filter(e=>e.clientId===c.id).length;
+    const div = document.createElement('div');
+    div.className = 'clientCard';
+    div.innerHTML = `<div><div class="cname">${c.name}</div><div class="cmeta">${n} sets logged</div></div>
+      <button onclick="removeClient('${c.id}')">Remove</button>`;
+    list.appendChild(div);
+  });
+}
+
+function renderTabs(){
+  const el = document.getElementById('tabs');
+  el.innerHTML = "";
+  const items = [...CATS.map(c=>({key:c,label:c,type:'cat'})),
+                 {key:'__schedule',label:'Schedule',type:'schedule'},
+                 {key:'__progress',label:'Progress',type:'progress'},
+                 {key:'__history',label:'History',type:'nav'}];
+  items.forEach(it=>{
+    const d = document.createElement('div');
+    d.className = 'tab' + ((it.type==='cat' && currentView==='log' && currentCat===it.key) ||
+                            (it.type==='schedule' && currentView==='schedule') ||
+                            (it.type==='progress' && currentView==='progress') ||
+                            (it.type==='nav' && currentView==='history') ? ' active' : '');
+    d.textContent = it.label;
+    d.onclick = ()=>{
+      if(it.type==='cat'){ currentCat = it.key; showView('log'); }
+      else if(it.type==='schedule'){ showView('schedule'); }
+      else if(it.type==='progress'){ showView('progress'); }
+      else { showView('history'); }
+    };
+    el.appendChild(d);
+  });
+}
+
+function showView(v){
+  currentView = v;
+  ['logView','scheduleView','progressView','historyView','clientsView','settingsView'].forEach(id=>{
+    document.getElementById(id).style.display = (id === v+'View') ? 'block':'none';
+  });
+  const showTabs = ['log','schedule','progress','history'].includes(v);
+  document.getElementById('tabs').style.display = showTabs ? 'flex':'none';
+  renderTabs();
+  renderClientSelect();
+  if(v==='log') renderExercises();
+  if(v==='schedule') renderSchedule();
+  if(v==='history') renderHistory();
+  if(v==='progress'){ populateProgressCatSelect(); populateProgressSelect(); renderProgress(); }
+  if(v==='clients') renderClientsList();
+}
+
+function scheduledForToday(){
+  const date = document.getElementById('dateInput').value || todayStr();
+  const day = weekdayOf(date);
+  const clientSched = schedules[activeClientId] || {};
+  return new Set(clientSched[day] || []);
+}
+
+function renderExercises(){
+  const list = document.getElementById('exerciseList');
+  list.innerHTML = "";
+  const date = document.getElementById('dateInput').value || todayStr();
+  const scheduled = scheduledForToday();
+  GROUPS[currentCat].forEach(ex=>{
+    const dayEntries = entries.filter(e=>e.date===date && e.exercise===ex && e.clientId===activeClientId);
+    const card = document.createElement('div');
+    card.className = 'exCard';
+    card.innerHTML = `
+      <div class="exHead" onclick="toggleCard(this)">
+        <div class="name">${ex}${scheduled.has(ex) ? '<span class="badge">Planned</span>' : ''}</div>
+        <div class="count">${dayEntries.length} set${dayEntries.length===1?'':'s'}</div>
+      </div>
+      <div class="exBody">
+        <div class="setRow">
+          <input type="number" placeholder="Weight (kg)" class="wIn" inputmode="decimal">
+          <span class="x">×</span>
+          <input type="number" placeholder="Reps" class="rIn" inputmode="numeric">
+        </div>
+        <button class="addBtn" onclick="addSet(this,'${ex.replace(/'/g,"\\'")}')">Add Set</button>
+        <div class="todaySets"></div>
+      </div>
+    `;
+    const container = card.querySelector('.todaySets');
+    if(dayEntries.length===0){
+      container.innerHTML = '<div style="color:var(--muted);font-size:12px;">No sets logged yet</div>';
+    } else {
+      dayEntries.forEach((e)=>{
+        const idx = entries.indexOf(e);
+        const row = document.createElement('div');
+        row.className='row';
+        row.innerHTML = `<span>Set ${dayEntries.indexOf(e)+1}: ${e.weight}kg × ${e.reps}</span><button onclick="deleteEntry(${idx})">✕</button>`;
+        container.appendChild(row);
+      });
+    }
+    list.appendChild(card);
+  });
+}
+
+function toggleCard(headEl){ headEl.nextElementSibling.classList.toggle('open'); }
+
+async function addSet(btn, exercise){
+  const row = btn.previousElementSibling;
+  const w = row.querySelector('.wIn').value;
+  const r = row.querySelector('.rIn').value;
+  if(!w || !r){ toast('Enter weight and reps'); return; }
+  const date = document.getElementById('dateInput').value || todayStr();
+  entries.push({
+    id: uid(), clientId: activeClientId, date, category: currentCat, exercise,
+    weight: parseFloat(w), reps: parseInt(r), synced:false
+  });
+  await saveEntries();
+  renderExercises();
+  toast('Set logged');
+  setTimeout(()=>{
+    document.querySelectorAll('.exHead .name').forEach(c=>{
+      if(c.textContent.startsWith(exercise)) c.parentElement.nextElementSibling.classList.add('open');
+    });
+  },0);
+}
+
+async function deleteEntry(idx){
+  entries.splice(idx,1);
+  await saveEntries();
+  renderExercises();
+}
+
+function renderHistory(){
+  const list = document.getElementById('historyList');
+  list.innerHTML = "";
+  const clientEntries = entries.filter(e=>e.clientId===activeClientId);
+  if(clientEntries.length===0){ list.innerHTML = '<div class="empty">No entries yet for this client.</div>'; return; }
+  const byDate = {};
+  clientEntries.forEach(e=>{ byDate[e.date] = byDate[e.date] || []; byDate[e.date].push(e); });
+  Object.keys(byDate).sort().reverse().forEach(date=>{
+    const byEx = {};
+    byDate[date].forEach(e=>{ byEx[e.exercise] = byEx[e.exercise] || []; byEx[e.exercise].push(e); });
+    Object.keys(byEx).forEach(ex=>{
+      const sets = byEx[ex].map(e=>`${e.weight}×${e.reps}`).join(', ');
+      const div = document.createElement('div');
+      div.className = 'histEntry';
+      div.innerHTML = `<div class="d">${date}</div><div class="ex">${ex}</div><div class="sets">${sets}</div>`;
+      list.appendChild(div);
+    });
+  });
+}
+
+function toCSV(){
+  const rows = [["Client","Date","Category","Exercise","Weight(kg)","Reps"]];
+  entries.filter(e=>e.clientId===activeClientId).forEach(e=>{
+    const cname = (clients.find(c=>c.id===e.clientId)||{}).name || "";
+    rows.push([cname,e.date,e.category,e.exercise,e.weight,e.reps]);
+  });
+  return rows.map(r=>r.join("\t")).join("\n");
+}
+
+async function copyForSheets(){
+  try{ await navigator.clipboard.writeText(toCSV()); toast('Copied — paste into Google Sheets'); }
+  catch(e){ toast('Copy failed — select and copy manually'); }
+}
+
+async function syncToSheet(){
+  if(!settings.scriptUrl){ toast('Add your Apps Script URL in Settings first'); showView('settings'); return; }
+  const unsynced = entries.filter(e=>!e.synced && e.clientId===activeClientId);
+  if(unsynced.length===0){ toast('Already up to date'); return; }
+  toast(`Syncing ${unsynced.length} set(s)...`);
+  const cname = (clients.find(c=>c.id===activeClientId)||{}).name || "";
+  for(const e of unsynced){
+    try{
+      await fetch(settings.scriptUrl, {
+        method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify({...e, clientName: cname})
+      });
+      e.synced = true;
+    }catch(err){}
+  }
+  await saveEntries();
+  toast('Sync attempted — check your Sheet');
+  renderHistory();
+}
+
+async function saveSettings(){
+  settings.scriptUrl = document.getElementById('scriptUrlInput').value.trim();
+  await saveSettingsData();
+  toast('Settings saved');
+}
+
+// ---- Progress ----
+function allExercisesFlat(){
+  const all = [];
+  CATS.forEach(c=>GROUPS[c].forEach(ex=>all.push(ex)));
+  return all;
+}
+function populateProgressCatSelect(){
+  const sel = document.getElementById('progCatSelect');
+  const prev = sel.value;
+  sel.innerHTML = "";
+  const optAll = document.createElement('option');
+  optAll.value = "__all__"; optAll.textContent = "All Categories";
+  sel.appendChild(optAll);
+  CATS.forEach(c=>{
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    sel.appendChild(opt);
+  });
+  sel.value = prev || "__all__";
+}
+function onProgCatChange(){
+  populateProgressSelect();
+  renderProgress();
+}
+function populateProgressSelect(){
+  const cat = document.getElementById('progCatSelect').value;
+  const sel = document.getElementById('progExSelect');
+  const prev = sel.value;
+  const withData = new Set(entries.filter(e=>e.clientId===activeClientId).map(e=>e.exercise));
+  sel.innerHTML = "";
+
+  if(cat && cat !== "__all__"){
+    const optGroup = document.createElement('option');
+    optGroup.value = "__group__";
+    optGroup.textContent = `Overall — ${cat} (all exercises)`;
+    sel.appendChild(optGroup);
+    GROUPS[cat].forEach(ex=>{
+      const opt = document.createElement('option');
+      opt.value = ex; opt.textContent = withData.has(ex) ? ex : `${ex} (no data yet)`;
+      sel.appendChild(opt);
+    });
+  } else {
+    allExercisesFlat().forEach(ex=>{
+      const opt = document.createElement('option');
+      opt.value = ex; opt.textContent = withData.has(ex) ? ex : `${ex} (no data yet)`;
+      sel.appendChild(opt);
+    });
+  }
+  if(prev && Array.from(sel.options).some(o=>o.value===prev)) sel.value = prev;
+}
+
+function drawLineChart(dates, valuesByDate, unitLabel){
+  const svg = document.getElementById('progChart');
+  svg.innerHTML = "";
+  const w = Math.max(320, dates.length*60);
+  const h=200,padL=40,padR=14,padT=14,padB=26;
+  svg.setAttribute('width', w); svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  const values = dates.map(d=>valuesByDate[d]);
+  const vMin=Math.min(...values), vMax=Math.max(...values), range=(vMax-vMin)||1;
+  const x = i => padL + (dates.length===1?0:i*(w-padL-padR)/(dates.length-1));
+  const y = v => h-padB - ((v-vMin)/range)*(h-padT-padB);
+  let path=""; dates.forEach((d,i)=>{ path += (i===0?'M':'L')+x(i)+' '+y(valuesByDate[d])+' '; });
+  const ns='http://www.w3.org/2000/svg';
+  const line=document.createElementNS(ns,'path');
+  line.setAttribute('d',path); line.setAttribute('fill','none'); line.setAttribute('stroke','#ff5b2e'); line.setAttribute('stroke-width','2.5');
+  svg.appendChild(line);
+  dates.forEach((d,i)=>{
+    const c=document.createElementNS(ns,'circle');
+    c.setAttribute('cx',x(i)); c.setAttribute('cy',y(valuesByDate[d])); c.setAttribute('r',4); c.setAttribute('fill','#ff5b2e');
+    svg.appendChild(c);
+    const label=document.createElementNS(ns,'text');
+    label.setAttribute('x',x(i)); label.setAttribute('y',h-8); label.setAttribute('font-size','9');
+    label.setAttribute('fill','#8a8a86'); label.setAttribute('text-anchor','middle'); label.textContent=d.slice(5);
+    svg.appendChild(label);
+    const val=document.createElementNS(ns,'text');
+    val.setAttribute('x',x(i)); val.setAttribute('y',y(valuesByDate[d])-8); val.setAttribute('font-size','10');
+    val.setAttribute('fill','#eeeeea'); val.setAttribute('text-anchor','middle'); val.setAttribute('font-weight','600');
+    val.textContent=valuesByDate[d];
+    svg.appendChild(val);
+  });
+}
+
+function renderProgress(){
+  const cat = document.getElementById('progCatSelect').value;
+  const exVal = document.getElementById('progExSelect').value;
+  const statsEl = document.getElementById('progStats');
+
+  if(exVal === "__group__"){
+    // Overall volume for every exercise in this category, per date
+    const groupExercises = new Set(GROUPS[cat]);
+    const catEntries = entries.filter(e=>e.clientId===activeClientId && groupExercises.has(e.exercise))
+                               .sort((a,b)=>a.date.localeCompare(b.date));
+    if(catEntries.length===0){
+      statsEl.innerHTML = `<div class="empty" style="flex:1;">No sets logged for ${cat} yet.</div>`;
+      document.getElementById('progChart').innerHTML = "";
+      return;
+    }
+    const byDate = {};
+    catEntries.forEach(e=>{ byDate[e.date] = (byDate[e.date]||0) + e.weight*e.reps; });
+    const dates = Object.keys(byDate).sort();
+    const totalVolume = catEntries.reduce((s,e)=>s+e.weight*e.reps,0);
+    const lastDate = dates[dates.length-1];
+    statsEl.innerHTML = `
+      <div class="progStat"><div class="v">${Math.round(totalVolume)}</div><div class="l">Total Volume (kg)</div></div>
+      <div class="progStat"><div class="v">${Math.round(byDate[lastDate])}</div><div class="l">Last Session (kg)</div></div>
+      <div class="progStat"><div class="v">${dates.length}</div><div class="l">Sessions</div></div>
+    `;
+    drawLineChart(dates, byDate, 'kg');
+    return;
+  }
+
+  const ex = exVal;
+  const exEntries = entries.filter(e=>e.exercise===ex && e.clientId===activeClientId).sort((a,b)=>a.date.localeCompare(b.date));
+  if(exEntries.length===0){
+    statsEl.innerHTML = '<div class="empty" style="flex:1;">No sets logged for this exercise yet.</div>';
+    document.getElementById('progChart').innerHTML = "";
+    return;
+  }
+  const maxWeight = Math.max(...exEntries.map(e=>e.weight));
+  const lastEntry = exEntries[exEntries.length-1];
+  statsEl.innerHTML = `
+    <div class="progStat"><div class="v">${maxWeight}kg</div><div class="l">Best Weight</div></div>
+    <div class="progStat"><div class="v">${lastEntry.weight}kg×${lastEntry.reps}</div><div class="l">Last Set</div></div>
+    <div class="progStat"><div class="v">${exEntries.length}</div><div class="l">Total Sets</div></div>
+  `;
+  const byDate = {};
+  exEntries.forEach(e=>{ byDate[e.date] = Math.max(byDate[e.date]||0, e.weight); });
+  const dates = Object.keys(byDate).sort();
+  drawLineChart(dates, byDate, 'kg');
+}
+
+// ---- Schedule ----
+function renderSchedule(){
+  const list = document.getElementById('dayList');
+  list.innerHTML = "";
+  const clientSched = schedules[activeClientId] || {};
+  DAYS.forEach(day=>{
+    const exs = clientSched[day] || [];
+    const row = document.createElement('div');
+    row.className = 'dayRow';
+    row.onclick = ()=>openPicker(day);
+    row.innerHTML = `<div class="dname">${day}</div><div class="dcount">${exs.length ? exs.length+' exercise(s)' : 'Rest / not set'}</div>`;
+    list.appendChild(row);
+  });
+}
+
+function openPicker(day){
+  pickerDay = day;
+  document.getElementById('pickerTitle').textContent = `Assign exercises — ${day}`;
+  const body = document.getElementById('pickerBody');
+  body.innerHTML = "";
+  const clientSched = schedules[activeClientId] || {};
+  const selected = new Set(clientSched[day] || []);
+  CATS.forEach(cat=>{
+    const g = document.createElement('div');
+    g.className = 'pickerGroup';
+    g.innerHTML = `<div class="gname">${cat.toUpperCase()}</div>`;
+    GROUPS[cat].forEach(ex=>{
+      const id = 'pk_' + ex.replace(/[^a-zA-Z0-9]/g,'_');
+      const r = document.createElement('label');
+      r.className = 'pickerRow';
+      r.innerHTML = `<input type="checkbox" id="${id}" value="${ex}" ${selected.has(ex)?'checked':''}> ${ex}`;
+      g.appendChild(r);
+    });
+    body.appendChild(g);
+  });
+  document.getElementById('pickerOverlay').classList.add('open');
+}
+function closePicker(){ document.getElementById('pickerOverlay').classList.remove('open'); pickerDay = null; }
+async function savePicker(){
+  const checked = Array.from(document.querySelectorAll('#pickerBody input:checked')).map(i=>i.value);
+  schedules[activeClientId] = schedules[activeClientId] || {};
+  schedules[activeClientId][pickerDay] = checked;
+  await saveSchedules();
+  closePicker();
+  renderSchedule();
+  toast('Schedule updated');
+}
+
+document.getElementById('dateInput').value = todayStr();
+document.getElementById('dateInput').addEventListener('change', renderExercises);
+
+(async function init(){
+  await loadData();
+  renderClientSelect();
+  showView('log');
+  if(typeof window.storage === 'undefined' || storageBroken){
+    setTimeout(()=>toast('Note: this browser can\'t save data — open via the Claude chat link'), 600);
+  }
+})();
+</script>
+</body>
+</html>
