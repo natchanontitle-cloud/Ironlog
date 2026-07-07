@@ -36,17 +36,21 @@
   .exHead{padding:12px 14px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;}
   .exHead .name{font-weight:600; font-size:14.5px;}
   .exHead .count{color:var(--muted); font-size:12px;}
+  .exHead .count.metOk{color:var(--good); font-weight:700;}
+  .metTick{color:var(--good); font-weight:700;}
   .exBody{display:none; padding:0 14px 14px; border-top:1px solid var(--line);}
   .exBody.open{display:block;}
+  .targetLine{color:var(--accent); font-size:12px; font-weight:600; margin-top:10px;}
   .setRow{display:flex; gap:8px; align-items:center; margin-top:10px;}
   .setRow input{width:100%; background:var(--card2); border:1px solid var(--line); color:var(--text); padding:9px 10px; border-radius:8px; font-size:14px;}
   .setRow .x{color:var(--muted); font-size:13px;}
   .addBtn{margin-top:10px; width:100%; background:var(--accent); color:#1a0d08; border:none; padding:10px; border-radius:8px; font-weight:700; font-family:'Oswald'; letter-spacing:0.03em; cursor:pointer; font-size:13px;}
+  .ghostBtn{margin-top:10px; width:100%; background:none; border:1px dashed var(--line); color:var(--muted); padding:10px; border-radius:8px; font-weight:600; font-family:'Oswald'; cursor:pointer; font-size:12.5px;}
   .todaySets{margin-top:10px; display:flex; flex-direction:column; gap:6px;}
   .todaySets .row{display:flex; justify-content:space-between; background:var(--card2); padding:7px 10px; border-radius:6px; font-size:13px;}
   .todaySets .row button{background:none; border:none; color:var(--muted); cursor:pointer; font-size:13px;}
 
-  #historyView,#settingsView,#progressView,#scheduleView,#clientsView{display:none;}
+  #dashboardView,#todayView,#historyView,#settingsView,#progressView,#scheduleView,#clientsView{display:none;}
   .histEntry{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:8px;}
   .histEntry .d{color:var(--accent); font-size:12px; font-weight:700; font-family:'Oswald';}
   .histEntry .ex{font-weight:600; font-size:14px; margin-top:2px;}
@@ -54,6 +58,12 @@
   .actionRow{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
   .actionRow button{flex:1; background:var(--card2); color:var(--text); border:1px solid var(--line); padding:10px; border-radius:8px; font-size:13px; cursor:pointer; font-family:'Oswald'; letter-spacing:0.02em;}
   .actionRow button.primary{background:var(--accent); color:#1a0d08; border:none; font-weight:700;}
+
+  .reportRow{display:flex; gap:10px; margin-bottom:14px;}
+  .reportCard{flex:1; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px; text-align:center;}
+  .reportCard .v{font-family:'Oswald'; font-size:20px; font-weight:700; color:var(--accent);}
+  .reportCard .l{font-size:10.5px; color:var(--muted); letter-spacing:0.04em; text-transform:uppercase; margin-top:2px;}
+  .reportCard .l2{font-size:9.5px; color:var(--muted); margin-top:1px;}
 
   .settingsBox,.progCard,.clientCard{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:12px;}
   .settingsBox label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px;}
@@ -72,24 +82,44 @@
   .dayRow .dcount{color:var(--muted); font-size:12px;}
   .pickerOverlay{position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:flex-end; z-index:20;}
   .pickerOverlay.open{display:flex;}
-  .pickerSheet{background:var(--bg); width:100%; max-height:80vh; overflow-y:auto; border-radius:16px 16px 0 0; padding:16px; border-top:1px solid var(--line);}
+  .pickerSheet{background:var(--bg); width:100%; max-height:82vh; overflow-y:auto; border-radius:16px 16px 0 0; padding:16px; border-top:1px solid var(--line);}
   .pickerSheet h3{margin:0 0 10px; font-size:15px;}
   .pickerGroup{margin-bottom:10px;}
   .pickerGroup .gname{color:var(--muted); font-size:11px; letter-spacing:0.06em; margin-bottom:6px; font-family:'Oswald';}
+  .pkRowWrap{margin-bottom:2px;}
   .pickerRow{display:flex; align-items:center; gap:10px; padding:8px 4px; font-size:14px;}
   .pickerRow input{width:18px; height:18px;}
+  .targetRow{display:none; gap:6px; margin:0 0 8px 30px;}
+  .targetRow input{width:64px; background:var(--card2); border:1px solid var(--line); color:var(--text); padding:6px; border-radius:6px; font-size:12px;}
   .pickerActions{display:flex; gap:8px; margin-top:12px; position:sticky; bottom:0; background:var(--bg); padding-top:8px;}
   .pickerActions button{flex:1; padding:11px; border-radius:8px; border:none; font-family:'Oswald'; font-weight:700; cursor:pointer;}
   .pickerActions .save{background:var(--accent); color:#1a0d08;}
   .pickerActions .cancel{background:var(--card2); color:var(--text);}
 
-  .clientCard{display:flex; justify-content:space-between; align-items:center;}
+  .clientCard{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
   .clientCard .cname{font-weight:600; font-size:15px;}
-  .clientCard .cmeta{color:var(--muted); font-size:12px; margin-top:2px;}
+  .clientCard .cmeta{color:var(--muted); font-size:12px; margin-top:2px; line-height:1.5;}
+  .clientCard .cbtns{display:flex; flex-direction:column; gap:6px;}
   .clientCard button{background:none; border:1px solid var(--line); color:var(--muted); padding:6px 10px; border-radius:6px; font-size:12px; cursor:pointer;}
-  .addClientRow{display:flex; gap:8px; margin-bottom:14px;}
-  .addClientRow input{flex:1; background:var(--card); border:1px solid var(--line); color:var(--text); padding:10px; border-radius:8px; font-size:14px;}
-  .addClientRow button{background:var(--accent); color:#1a0d08; border:none; padding:0 16px; border-radius:8px; font-weight:700; cursor:pointer; font-family:'Oswald';}
+  .addClientRow{display:flex; flex-direction:column; gap:8px; margin-bottom:14px;}
+  .addClientRow input{background:var(--card); border:1px solid var(--line); color:var(--text); padding:10px; border-radius:8px; font-size:14px;}
+  .addClientRow button{background:var(--accent); color:#1a0d08; border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer; font-family:'Oswald';}
+  .fieldLabel{font-size:11px; color:var(--muted); margin:-4px 0 -2px;}
+
+  .dashCard{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:10px; cursor:pointer;}
+  .dashCard .top{display:flex; justify-content:space-between; align-items:center;}
+  .dashCard .cname{font-family:'Oswald'; font-weight:700; font-size:15px;}
+  .dashCard .last{color:var(--muted); font-size:11.5px;}
+  .dashCard .stats{display:flex; gap:10px; margin-top:10px;}
+  .dashCard .stat{flex:1; background:var(--card2); border-radius:8px; padding:8px; text-align:center;}
+  .dashCard .stat .v{font-family:'Oswald'; font-size:16px; font-weight:700; color:var(--accent);}
+  .dashCard .stat .l{font-size:9.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; margin-top:1px;}
+
+  .bodyWidget{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:14px;}
+  .bodyWidget .row{display:flex; gap:8px; align-items:center; margin-top:8px;}
+  .bodyWidget input{flex:1; background:var(--card2); border:1px solid var(--line); color:var(--text); padding:9px 10px; border-radius:8px; font-size:14px;}
+  .bodyWidget button{background:var(--accent); color:#1a0d08; border:none; padding:9px 14px; border-radius:8px; font-weight:700; cursor:pointer; font-family:'Oswald'; white-space:nowrap;}
+  .bodyWidget .hint{color:var(--muted); font-size:11px; margin-top:6px;}
 
   .toast{position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:var(--card2); border:1px solid var(--line); color:var(--text); padding:10px 18px; border-radius:20px; font-size:13px; opacity:0; transition:opacity .2s; z-index:50;}
   .toast.show{opacity:1;}
@@ -111,13 +141,31 @@
 <div class="tabs" id="tabs"></div>
 
 <main>
+  <div id="dashboardView">
+    <div id="dashboardList"></div>
+  </div>
+
+  <div id="todayView">
+    <div class="dateRow"><input type="date" id="todayDateInput"></div>
+    <div class="bodyWidget">
+      <div class="fieldLabel">BODY WEIGHT — TODAY</div>
+      <div class="row">
+        <input type="number" id="bodyWeightInput" placeholder="kg" inputmode="decimal">
+        <button onclick="saveBodyWeight()">Save</button>
+      </div>
+      <div class="hint">Optional — log any day, it feeds the weekly/monthly report.</div>
+    </div>
+    <div id="todayList"></div>
+  </div>
+
   <div id="logView">
     <div class="dateRow"><input type="date" id="dateInput"></div>
     <div id="exerciseList"></div>
+    <button class="ghostBtn" onclick="promptAddExercise()">+ Add exercise to this category</button>
   </div>
 
   <div id="scheduleView">
-    <p class="empty" style="padding:0 0 12px; text-align:left;">Tap a day to assign which exercises this client trains.</p>
+    <p class="empty" style="padding:0 0 12px; text-align:left;">Tap a day to assign exercises + target sets/weight/reps for this client.</p>
     <div id="dayList"></div>
   </div>
 
@@ -131,6 +179,10 @@
   </div>
 
   <div id="historyView">
+    <div class="reportRow">
+      <div class="reportCard"><div class="v" id="repWeekSets">-</div><div class="l">This Week</div><div class="l2" id="repWeekVol"></div></div>
+      <div class="reportCard"><div class="v" id="repMonthSets">-</div><div class="l">This Month</div><div class="l2" id="repMonthVol"></div></div>
+    </div>
     <div class="actionRow">
       <button class="primary" onclick="syncToSheet()">Sync to Sheet</button>
       <button onclick="copyForSheets()">Copy as CSV</button>
@@ -140,8 +192,12 @@
 
   <div id="clientsView">
     <div class="addClientRow">
-      <input id="newClientName" placeholder="New client name">
-      <button onclick="addClient()">Add</button>
+      <input id="newClientName" placeholder="Client name">
+      <div class="fieldLabel">Birthdate (optional)</div>
+      <input id="newClientBirthdate" type="date">
+      <div class="fieldLabel">Height cm (optional)</div>
+      <input id="newClientHeight" type="number" placeholder="e.g. 170">
+      <button onclick="addClient()">Add Client</button>
     </div>
     <div id="clientsList"></div>
   </div>
@@ -151,8 +207,14 @@
       <label>Google Apps Script Web App URL</label>
       <input id="scriptUrlInput" placeholder="https://script.google.com/macros/s/xxxx/exec">
       <button class="addBtn" onclick="saveSettings()">Save</button>
-      <p style="margin-top:14px;">Paste the Web App URL from your deployed Apps Script here to enable
-      "Sync to Sheet" on the History tab. Each row includes the client name.</p>
+      <p style="margin-top:14px;">Paste the Web App URL from your deployed Apps Script here. Every logged set,
+      new client, schedule change, and body-weight entry auto-syncs the moment it's saved — this URL is only needed for that.</p>
+    </div>
+    <div class="settingsBox">
+      <label style="color:#ff8a65;">Danger Zone</label>
+      <p>Erases everything stored in this browser only (clients, schedules, logged sets, body stats, the Sheet URL).
+      Your Google Sheet is untouched — it's a separate, permanent copy. Use this to start fresh locally.</p>
+      <button class="ghostBtn" style="border-color:#7a2d1f;color:#ff8a65;" onclick="clearAllLocalData()">Clear Local Data</button>
     </div>
   </div>
 </main>
@@ -184,12 +246,14 @@ const CATS = Object.keys(GROUPS);
 const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 
 let currentCat = CATS[0];
-let currentView = "log";
+let currentView = "dashboard";
 let clients = [];
 let activeClientId = null;
 let entries = [];
 let schedules = {};
 let settings = { scriptUrl: "" };
+let bodyStats = [];
+let CUSTOM = {};
 let pickerDay = null;
 let storageBroken = false;
 
@@ -199,17 +263,101 @@ function weekdayOf(dateStr){
   const idx = (d.getDay()+6)%7; // Mon=0
   return DAYS[idx];
 }
+function mondayOf(dateStr){
+  const d = new Date(dateStr + "T00:00:00");
+  const idx = (d.getDay()+6)%7;
+  d.setDate(d.getDate()-idx);
+  return d.toISOString().slice(0,10);
+}
 function uid(){ return Date.now()+Math.random().toString(16).slice(2); }
+function ageFromBirthdate(bd){
+  if(!bd) return null;
+  const b = new Date(bd+"T00:00:00"), n = new Date();
+  let age = n.getFullYear()-b.getFullYear();
+  const m = n.getMonth()-b.getMonth();
+  if(m<0 || (m===0 && n.getDate()<b.getDate())) age--;
+  return age;
+}
+
+function getGroups(){
+  const g = {};
+  CATS.forEach(c=>{ g[c] = GROUPS[c].concat(CUSTOM[c]||[]); });
+  return g;
+}
+function findCategoryOf(ex){
+  const g = getGroups();
+  for(const c of CATS){ if(g[c].includes(ex)) return c; }
+  return CATS[0];
+}
+function allExercisesFlat(){
+  const g = getGroups();
+  const all = [];
+  CATS.forEach(c=>g[c].forEach(ex=>all.push(ex)));
+  return all;
+}
+
+// ---- Persistence ----
+// Uses Claude's window.storage when available (in-chat), otherwise falls back
+// to the browser's own localStorage so this also works when hosted standalone
+// (e.g. GitHub Pages) — each environment keeps its own separate copy of the data.
+const HAS_CLAUDE_STORAGE = (typeof window.storage !== 'undefined');
+
+async function rawGet(key){
+  if(HAS_CLAUDE_STORAGE){
+    const r = await window.storage.get(key);
+    return r ? r.value : null;
+  }
+  return localStorage.getItem(key);
+}
+async function rawSet(key, valStr){
+  if(HAS_CLAUDE_STORAGE){ await window.storage.set(key, valStr); }
+  else{ localStorage.setItem(key, valStr); }
+}
+async function rawDelete(key){
+  if(HAS_CLAUDE_STORAGE){ await window.storage.delete(key); }
+  else{ localStorage.removeItem(key); }
+}
+
+async function safeSet(key, val){
+  try{ await rawSet(key, JSON.stringify(val)); }
+  catch(e){ console.warn('storage save failed for', key, e); storageBroken = true; }
+}
+async function saveClients(){ await safeSet('clients', clients); }
+async function saveActiveClient(){ await safeSet('activeClientId', activeClientId); }
+async function saveEntries(){ await safeSet('entries', entries); }
+async function saveSchedules(){ await safeSet('schedules', schedules); }
+async function saveSettingsData(){ await safeSet('settings', settings); }
+async function saveCustom(){ await safeSet('custom', CUSTOM); }
+async function saveBodyStats(){ await safeSet('bodyStats', bodyStats); }
 
 async function loadData(){
-  try{ const r = await window.storage.get('clients'); clients = r ? JSON.parse(r.value) : []; }catch(e){ clients = []; }
-  try{ const r = await window.storage.get('activeClientId'); activeClientId = r ? JSON.parse(r.value) : null; }catch(e){ activeClientId = null; }
-  try{ const r = await window.storage.get('entries'); entries = r ? JSON.parse(r.value) : []; }catch(e){ entries = []; }
-  try{ const r = await window.storage.get('schedules'); schedules = r ? JSON.parse(r.value) : {}; }catch(e){ schedules = {}; }
-  try{ const r = await window.storage.get('settings'); settings = r ? JSON.parse(r.value) : {scriptUrl:""}; }catch(e){ settings = {scriptUrl:""}; }
+  try{ const v = await rawGet('custom'); CUSTOM = v ? JSON.parse(v) : {}; }catch(e){ CUSTOM = {}; }
+  try{ const v = await rawGet('clients'); clients = v ? JSON.parse(v) : []; }catch(e){ clients = []; }
+  try{ const v = await rawGet('activeClientId'); activeClientId = v ? JSON.parse(v) : null; }catch(e){ activeClientId = null; }
+  try{ const v = await rawGet('entries'); entries = v ? JSON.parse(v) : []; }catch(e){ entries = []; }
+  try{ const v = await rawGet('schedules'); schedules = v ? JSON.parse(v) : {}; }catch(e){ schedules = {}; }
+  try{ const v = await rawGet('settings'); settings = v ? JSON.parse(v) : {scriptUrl:""}; }catch(e){ settings = {scriptUrl:""}; }
+  try{ const v = await rawGet('bodyStats'); bodyStats = v ? JSON.parse(v) : []; }catch(e){ bodyStats = []; }
+
+  // migrate old schedule format (plain exercise name strings -> objects with targets)
+  let migrated = false;
+  Object.keys(schedules).forEach(cid=>{
+    Object.keys(schedules[cid]).forEach(day=>{
+      schedules[cid][day] = (schedules[cid][day]||[]).map(item=>{
+        if(typeof item === 'string'){
+          migrated = true;
+          return {exercise:item, targetSets:null, targetWeight:null, targetReps:null};
+        }
+        return item;
+      });
+    });
+  });
+  if(migrated) await saveSchedules();
+
+  clients.forEach(c=>{ if(!('birthdate' in c)) c.birthdate=''; if(!('height' in c)) c.height=''; });
 
   if(clients.length===0){
-    clients.push({id: uid(), name: "Me"});
+    clients.push({id: uid(), name: "Me", birthdate:"", height:""});
     await saveClients();
   }
   if(!activeClientId || !clients.find(c=>c.id===activeClientId)){
@@ -218,15 +366,6 @@ async function loadData(){
   }
   document.getElementById('scriptUrlInput').value = settings.scriptUrl || "";
 }
-async function safeSet(key, val){
-  try{ await window.storage.set(key, JSON.stringify(val)); }
-  catch(e){ console.warn('storage save failed for', key, e); storageBroken = true; }
-}
-async function saveClients(){ await safeSet('clients', clients); }
-async function saveActiveClient(){ await safeSet('activeClientId', activeClientId); }
-async function saveEntries(){ await safeSet('entries', entries); }
-async function saveSchedules(){ await safeSet('schedules', schedules); }
-async function saveSettingsData(){ await safeSet('settings', settings); }
 
 function toast(msg){
   const t = document.getElementById('toast');
@@ -234,6 +373,7 @@ function toast(msg){
   setTimeout(()=>t.classList.remove('show'), 1800);
 }
 
+// ---- Client bar / nav ----
 function renderClientSelect(){
   const sel = document.getElementById('clientSelect');
   sel.innerHTML = "";
@@ -244,73 +384,41 @@ function renderClientSelect(){
     sel.appendChild(opt);
   });
 }
-
 function onClientChange(){
   activeClientId = document.getElementById('clientSelect').value;
   saveActiveClient();
   currentCat = CATS[0];
-  showView('log');
+  showView('today');
 }
-
 function goHome(){
   currentCat = CATS[0];
-  showView('log');
-}
-
-async function addClient(){
-  const input = document.getElementById('newClientName');
-  const name = input.value.trim();
-  if(!name){ toast('Enter a client name'); return; }
-  const c = {id: uid(), name};
-  clients.push(c);
-  await saveClients();
-  activeClientId = c.id;
-  await saveActiveClient();
-  input.value = "";
-  renderClientSelect();
-  renderClientsList();
-  toast(`Added ${name}`);
-}
-
-async function removeClient(id){
-  if(clients.length<=1){ toast("Keep at least one client"); return; }
-  clients = clients.filter(c=>c.id!==id);
-  await saveClients();
-  if(activeClientId===id){ activeClientId = clients[0].id; await saveActiveClient(); }
-  renderClientSelect();
-  renderClientsList();
-  showView('clients');
-}
-
-function renderClientsList(){
-  const list = document.getElementById('clientsList');
-  list.innerHTML = "";
-  clients.forEach(c=>{
-    const n = entries.filter(e=>e.clientId===c.id).length;
-    const div = document.createElement('div');
-    div.className = 'clientCard';
-    div.innerHTML = `<div><div class="cname">${c.name}</div><div class="cmeta">${n} sets logged</div></div>
-      <button onclick="removeClient('${c.id}')">Remove</button>`;
-    list.appendChild(div);
-  });
+  showView('dashboard');
 }
 
 function renderTabs(){
   const el = document.getElementById('tabs');
   el.innerHTML = "";
-  const items = [...CATS.map(c=>({key:c,label:c,type:'cat'})),
-                 {key:'__schedule',label:'Schedule',type:'schedule'},
-                 {key:'__progress',label:'Progress',type:'progress'},
-                 {key:'__history',label:'History',type:'nav'}];
+  const items = [
+    {key:'__dashboard',label:'Dashboard',type:'dashboard'},
+    {key:'__today',label:'Today',type:'today'},
+    ...CATS.map(c=>({key:c,label:c,type:'cat'})),
+    {key:'__schedule',label:'Schedule',type:'schedule'},
+    {key:'__progress',label:'Progress',type:'progress'},
+    {key:'__history',label:'History',type:'nav'}
+  ];
   items.forEach(it=>{
     const d = document.createElement('div');
     d.className = 'tab' + ((it.type==='cat' && currentView==='log' && currentCat===it.key) ||
+                            (it.type==='dashboard' && currentView==='dashboard') ||
+                            (it.type==='today' && currentView==='today') ||
                             (it.type==='schedule' && currentView==='schedule') ||
                             (it.type==='progress' && currentView==='progress') ||
                             (it.type==='nav' && currentView==='history') ? ' active' : '');
     d.textContent = it.label;
     d.onclick = ()=>{
       if(it.type==='cat'){ currentCat = it.key; showView('log'); }
+      else if(it.type==='dashboard'){ showView('dashboard'); }
+      else if(it.type==='today'){ showView('today'); }
       else if(it.type==='schedule'){ showView('schedule'); }
       else if(it.type==='progress'){ showView('progress'); }
       else { showView('history'); }
@@ -321,13 +429,15 @@ function renderTabs(){
 
 function showView(v){
   currentView = v;
-  ['logView','scheduleView','progressView','historyView','clientsView','settingsView'].forEach(id=>{
+  ['dashboardView','todayView','logView','scheduleView','progressView','historyView','clientsView','settingsView'].forEach(id=>{
     document.getElementById(id).style.display = (id === v+'View') ? 'block':'none';
   });
-  const showTabs = ['log','schedule','progress','history'].includes(v);
+  const showTabs = ['dashboard','today','log','schedule','progress','history'].includes(v);
   document.getElementById('tabs').style.display = showTabs ? 'flex':'none';
   renderTabs();
   renderClientSelect();
+  if(v==='dashboard') renderDashboard();
+  if(v==='today') renderToday();
   if(v==='log') renderExercises();
   if(v==='schedule') renderSchedule();
   if(v==='history') renderHistory();
@@ -335,19 +445,171 @@ function showView(v){
   if(v==='clients') renderClientsList();
 }
 
+function switchToClient(id){
+  activeClientId = id;
+  saveActiveClient();
+  renderClientSelect();
+  showView('today');
+}
+
+// ---- Dashboard ----
+function renderDashboard(){
+  const list = document.getElementById('dashboardList');
+  list.innerHTML = "";
+  const sevenDaysAgo = new Date(Date.now() - 7*24*60*60*1000).toISOString().slice(0,10);
+  clients.forEach(c=>{
+    const cEntries = entries.filter(e=>e.clientId===c.id);
+    const dates = cEntries.map(e=>e.date).sort();
+    const lastDate = dates.length ? dates[dates.length-1] : null;
+    const weekSets = cEntries.filter(e=>e.date >= sevenDaysAgo).length;
+    const div = document.createElement('div');
+    div.className = 'dashCard';
+    div.onclick = ()=>switchToClient(c.id);
+    div.innerHTML = `
+      <div class="top">
+        <div class="cname">${c.name}</div>
+        <div class="last">${lastDate ? 'Last: '+lastDate : 'No sessions yet'}</div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="v">${weekSets}</div><div class="l">Sets (7d)</div></div>
+        <div class="stat"><div class="v">${cEntries.length}</div><div class="l">Total Sets</div></div>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+// ---- Today (client-facing plan) ----
+function renderToday(){
+  const dateInput = document.getElementById('todayDateInput');
+  const date = dateInput.value || todayStr();
+  dateInput.value = date;
+  const day = weekdayOf(date);
+  const plan = (schedules[activeClientId] || {})[day] || [];
+
+  // body weight widget
+  const existingBW = bodyStats.find(b=>b.clientId===activeClientId && b.date===date);
+  document.getElementById('bodyWeightInput').value = existingBW ? existingBW.weight : '';
+
+  const list = document.getElementById('todayList');
+  list.innerHTML = "";
+  if(plan.length===0){
+    list.innerHTML = `<div class="empty">No plan set for ${day}. Go to the Schedule tab to assign exercises for this client.</div>`;
+    return;
+  }
+  plan.forEach(item=>{
+    const ex = item.exercise;
+    const cat = findCategoryOf(ex);
+    const dayEntries = entries.filter(e=>e.date===date && e.exercise===ex && e.clientId===activeClientId);
+    const targetParts = [];
+    if(item.targetSets) targetParts.push(`${item.targetSets} sets`);
+    if(item.targetWeight) targetParts.push(`${item.targetWeight}kg`);
+    if(item.targetReps) targetParts.push(`${item.targetReps} reps`);
+    const targetLine = targetParts.length ? `Target: ${targetParts.join(' × ')}` : '';
+    const hasWeightRepTarget = item.targetWeight || item.targetReps;
+    const metCount = hasWeightRepTarget ? dayEntries.filter(e=>
+      (!item.targetWeight || e.weight >= item.targetWeight) &&
+      (!item.targetReps || e.reps >= item.targetReps)
+    ).length : dayEntries.length;
+    let countLabel = `${dayEntries.length} set${dayEntries.length===1?'':'s'}`;
+    let countClass = 'count';
+    if(item.targetSets){
+      countLabel = `${dayEntries.length}/${item.targetSets} sets`;
+      if(dayEntries.length >= item.targetSets && (!hasWeightRepTarget || metCount >= item.targetSets)){
+        countLabel += ' ✓';
+        countClass += ' metOk';
+      }
+    }
+
+    const card = document.createElement('div');
+    card.className = 'exCard';
+    card.innerHTML = `
+      <div class="exHead" onclick="toggleCard(this)">
+        <div class="name">${ex}</div>
+        <div class="${countClass}">${countLabel}</div>
+      </div>
+      <div class="exBody open">
+        ${targetLine ? `<div class="targetLine">${targetLine}</div>` : ''}
+        <div class="setRow">
+          <input type="number" placeholder="Weight (kg)" class="wIn" inputmode="decimal">
+          <span class="x">×</span>
+          <input type="number" placeholder="Reps" class="rIn" inputmode="numeric">
+        </div>
+        <button class="addBtn" onclick="addSetToday(this,'${ex.replace(/'/g,"\\'")}','${cat}')">Add Set</button>
+        <div class="todaySets"></div>
+      </div>
+    `;
+    const container = card.querySelector('.todaySets');
+    if(dayEntries.length===0){
+      container.innerHTML = '<div style="color:var(--muted);font-size:12px;">No sets logged yet</div>';
+    } else {
+      dayEntries.forEach((e)=>{
+        const idx = entries.indexOf(e);
+        const met = hasWeightRepTarget &&
+          (!item.targetWeight || e.weight >= item.targetWeight) &&
+          (!item.targetReps || e.reps >= item.targetReps);
+        const row = document.createElement('div');
+        row.className='row';
+        row.innerHTML = `<span>${met?'<span class="metTick">✓</span> ':''}Set ${dayEntries.indexOf(e)+1}: ${e.weight}kg × ${e.reps}</span><button onclick="deleteEntryAndRerender(${idx})">✕</button>`;
+        container.appendChild(row);
+      });
+    }
+    list.appendChild(card);
+  });
+}
+async function addSetToday(btn, exercise, category){
+  await addSetCore(btn, exercise, category, ()=>document.getElementById('todayDateInput').value || todayStr(), renderToday);
+}
+async function deleteEntryAndRerender(idx){
+  entries.splice(idx,1);
+  await saveEntries();
+  if(currentView==='today') renderToday(); else renderExercises();
+}
+async function saveBodyWeight(){
+  const date = document.getElementById('todayDateInput').value || todayStr();
+  const w = document.getElementById('bodyWeightInput').value;
+  if(!w){ toast('Enter a weight first'); return; }
+  const existing = bodyStats.find(b=>b.clientId===activeClientId && b.date===date);
+  if(existing){ existing.weight = parseFloat(w); }
+  else{ bodyStats.push({id: uid(), clientId: activeClientId, date, weight: parseFloat(w)}); }
+  await saveBodyStats();
+  toast('Body weight saved');
+  if(settings.scriptUrl){
+    const cname = (clients.find(c=>c.id===activeClientId)||{}).name || "";
+    pushBodyStatToSheet(cname, date, parseFloat(w));
+  }
+}
+document.getElementById('todayDateInput').value = todayStr();
+document.getElementById('todayDateInput').addEventListener('change', renderToday);
+
+function toggleCard(headEl){ headEl.nextElementSibling.classList.toggle('open'); }
+
+// ---- Custom exercises ----
+function promptAddExercise(){
+  const name = prompt(`New exercise name (will be added under "${currentCat}"):`);
+  if(!name || !name.trim()) return;
+  const clean = name.trim();
+  CUSTOM[currentCat] = CUSTOM[currentCat] || [];
+  if(getGroups()[currentCat].includes(clean)){ toast('That exercise already exists'); return; }
+  CUSTOM[currentCat].push(clean);
+  saveCustom();
+  renderExercises();
+  toast(`Added "${clean}" to ${currentCat}`);
+}
+
+// ---- Log (manual, any category) ----
 function scheduledForToday(){
   const date = document.getElementById('dateInput').value || todayStr();
   const day = weekdayOf(date);
-  const clientSched = schedules[activeClientId] || {};
-  return new Set(clientSched[day] || []);
+  const plan = (schedules[activeClientId] || {})[day] || [];
+  return new Set(plan.map(p=>p.exercise));
 }
-
 function renderExercises(){
   const list = document.getElementById('exerciseList');
   list.innerHTML = "";
   const date = document.getElementById('dateInput').value || todayStr();
   const scheduled = scheduledForToday();
-  GROUPS[currentCat].forEach(ex=>{
+  getGroups()[currentCat].forEach(ex=>{
     const dayEntries = entries.filter(e=>e.date===date && e.exercise===ex && e.clientId===activeClientId);
     const card = document.createElement('div');
     card.className = 'exCard';
@@ -374,7 +636,7 @@ function renderExercises(){
         const idx = entries.indexOf(e);
         const row = document.createElement('div');
         row.className='row';
-        row.innerHTML = `<span>Set ${dayEntries.indexOf(e)+1}: ${e.weight}kg × ${e.reps}</span><button onclick="deleteEntry(${idx})">✕</button>`;
+        row.innerHTML = `<span>Set ${dayEntries.indexOf(e)+1}: ${e.weight}kg × ${e.reps}</span><button onclick="deleteEntryAndRerender(${idx})">✕</button>`;
         container.appendChild(row);
       });
     }
@@ -382,38 +644,77 @@ function renderExercises(){
   });
 }
 
-function toggleCard(headEl){ headEl.nextElementSibling.classList.toggle('open'); }
+async function pushToSheet(payload){
+  if(!settings.scriptUrl) return false;
+  try{
+    await fetch(settings.scriptUrl, {
+      method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify(payload)
+    });
+    return true;
+  }catch(err){ return false; }
+}
+async function pushEntryToSheet(entry){
+  const cname = (clients.find(c=>c.id===entry.clientId)||{}).name || "";
+  return pushToSheet({...entry, type:'entry', clientName: cname});
+}
+async function pushClientToSheet(c){
+  return pushToSheet({type:'client', id:c.id, name:c.name, birthdate:c.birthdate, height:c.height});
+}
+async function pushScheduleItemToSheet(clientName, day, item){
+  return pushToSheet({type:'schedule', clientName, day, exercise:item.exercise,
+    targetSets:item.targetSets, targetWeight:item.targetWeight, targetReps:item.targetReps});
+}
+async function pushBodyStatToSheet(clientName, date, weight){
+  return pushToSheet({type:'bodyStat', clientName, date, weight});
+}
 
-async function addSet(btn, exercise){
+async function addSetCore(btn, exercise, category, getDate, rerender){
   const row = btn.previousElementSibling;
   const w = row.querySelector('.wIn').value;
   const r = row.querySelector('.rIn').value;
   if(!w || !r){ toast('Enter weight and reps'); return; }
-  const date = document.getElementById('dateInput').value || todayStr();
-  entries.push({
-    id: uid(), clientId: activeClientId, date, category: currentCat, exercise,
+  const date = getDate();
+  const newEntry = {
+    id: uid(), clientId: activeClientId, date, category, exercise,
     weight: parseFloat(w), reps: parseInt(r), synced:false
-  });
+  };
+  entries.push(newEntry);
   await saveEntries();
-  renderExercises();
+  rerender();
   toast('Set logged');
   setTimeout(()=>{
     document.querySelectorAll('.exHead .name').forEach(c=>{
       if(c.textContent.startsWith(exercise)) c.parentElement.nextElementSibling.classList.add('open');
     });
   },0);
+  if(settings.scriptUrl){
+    const ok = await pushEntryToSheet(newEntry);
+    newEntry.synced = ok;
+    await saveEntries();
+  }
+}
+async function addSet(btn, exercise){
+  await addSetCore(btn, exercise, currentCat, ()=>document.getElementById('dateInput').value || todayStr(), renderExercises);
 }
 
-async function deleteEntry(idx){
-  entries.splice(idx,1);
-  await saveEntries();
-  renderExercises();
-}
-
+// ---- History + reports ----
 function renderHistory(){
   const list = document.getElementById('historyList');
   list.innerHTML = "";
   const clientEntries = entries.filter(e=>e.clientId===activeClientId);
+
+  const todayD = todayStr();
+  const weekStart = mondayOf(todayD);
+  const monthPrefix = todayD.slice(0,7);
+  const weekEntries = clientEntries.filter(e=>e.date >= weekStart);
+  const monthEntries = clientEntries.filter(e=>e.date.slice(0,7) === monthPrefix);
+  const vol = arr => arr.reduce((s,e)=>s+e.weight*e.reps,0);
+  document.getElementById('repWeekSets').textContent = weekEntries.length;
+  document.getElementById('repWeekVol').textContent = `${Math.round(vol(weekEntries))} kg volume`;
+  document.getElementById('repMonthSets').textContent = monthEntries.length;
+  document.getElementById('repMonthVol').textContent = `${Math.round(vol(monthEntries))} kg volume`;
+
   if(clientEntries.length===0){ list.innerHTML = '<div class="empty">No entries yet for this client.</div>'; return; }
   const byDate = {};
   clientEntries.forEach(e=>{ byDate[e.date] = byDate[e.date] || []; byDate[e.date].push(e); });
@@ -438,44 +739,104 @@ function toCSV(){
   });
   return rows.map(r=>r.join("\t")).join("\n");
 }
-
 async function copyForSheets(){
   try{ await navigator.clipboard.writeText(toCSV()); toast('Copied — paste into Google Sheets'); }
   catch(e){ toast('Copy failed — select and copy manually'); }
 }
-
 async function syncToSheet(){
   if(!settings.scriptUrl){ toast('Add your Apps Script URL in Settings first'); showView('settings'); return; }
   const unsynced = entries.filter(e=>!e.synced && e.clientId===activeClientId);
   if(unsynced.length===0){ toast('Already up to date'); return; }
   toast(`Syncing ${unsynced.length} set(s)...`);
-  const cname = (clients.find(c=>c.id===activeClientId)||{}).name || "";
-  for(const e of unsynced){
-    try{
-      await fetch(settings.scriptUrl, {
-        method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'},
-        body: JSON.stringify({...e, clientName: cname})
-      });
-      e.synced = true;
-    }catch(err){}
-  }
+  for(const e of unsynced){ e.synced = await pushEntryToSheet(e); }
   await saveEntries();
   toast('Sync attempted — check your Sheet');
   renderHistory();
 }
-
 async function saveSettings(){
   settings.scriptUrl = document.getElementById('scriptUrlInput').value.trim();
   await saveSettingsData();
   toast('Settings saved');
 }
 
-// ---- Progress ----
-function allExercisesFlat(){
-  const all = [];
-  CATS.forEach(c=>GROUPS[c].forEach(ex=>all.push(ex)));
-  return all;
+async function clearAllLocalData(){
+  const ok = confirm('This erases all local data in THIS browser (clients, schedules, logged sets, body stats, Sheet URL). Your Google Sheet is not affected. Continue?');
+  if(!ok) return;
+  const keys = ['entries','clients','activeClientId','schedules','settings','custom','bodyStats'];
+  for(const k of keys){
+    try{ await rawDelete(k); }
+    catch(e){ /* key may not exist yet — safe to ignore */ }
+  }
+  toast('Local data cleared — reloading...');
+  setTimeout(()=>location.reload(), 900);
 }
+
+// ---- Clients ----
+async function addClient(){
+  const name = document.getElementById('newClientName').value.trim();
+  if(!name){ toast('Enter a client name'); return; }
+  const birthdate = document.getElementById('newClientBirthdate').value || '';
+  const height = document.getElementById('newClientHeight').value || '';
+  const c = {id: uid(), name, birthdate, height};
+  clients.push(c);
+  await saveClients();
+  activeClientId = c.id;
+  await saveActiveClient();
+  document.getElementById('newClientName').value = '';
+  document.getElementById('newClientBirthdate').value = '';
+  document.getElementById('newClientHeight').value = '';
+  renderClientSelect();
+  renderClientsList();
+  toast(`Added ${name}`);
+  if(settings.scriptUrl) pushClientToSheet(c);
+}
+async function removeClient(id){
+  if(clients.length<=1){ toast("Keep at least one client"); return; }
+  clients = clients.filter(c=>c.id!==id);
+  await saveClients();
+  if(activeClientId===id){ activeClientId = clients[0].id; await saveActiveClient(); }
+  renderClientSelect();
+  renderClientsList();
+  showView('clients');
+}
+async function editClient(id){
+  const c = clients.find(x=>x.id===id);
+  if(!c) return;
+  const name = prompt('Name:', c.name);
+  if(name===null) return;
+  const birthdate = prompt('Birthdate (YYYY-MM-DD, blank to clear):', c.birthdate || '');
+  const height = prompt('Height in cm (blank to clear):', c.height || '');
+  c.name = name.trim() || c.name;
+  c.birthdate = (birthdate||'').trim();
+  c.height = (height||'').trim();
+  await saveClients();
+  renderClientSelect();
+  renderClientsList();
+  toast('Client updated');
+  if(settings.scriptUrl) pushClientToSheet(c);
+}
+function renderClientsList(){
+  const list = document.getElementById('clientsList');
+  list.innerHTML = "";
+  clients.forEach(c=>{
+    const n = entries.filter(e=>e.clientId===c.id).length;
+    const age = ageFromBirthdate(c.birthdate);
+    const latestBW = bodyStats.filter(b=>b.clientId===c.id).sort((a,b)=>a.date.localeCompare(b.date)).pop();
+    const meta = [
+      `${n} sets logged`,
+      age!==null ? `Age ${age}` : null,
+      c.height ? `${c.height}cm` : null,
+      latestBW ? `${latestBW.weight}kg (${latestBW.date})` : null
+    ].filter(Boolean).join(' · ');
+    const div = document.createElement('div');
+    div.className = 'clientCard';
+    div.innerHTML = `<div><div class="cname">${c.name}</div><div class="cmeta">${meta}</div></div>
+      <div class="cbtns"><button onclick="editClient('${c.id}')">Edit</button><button onclick="removeClient('${c.id}')">Remove</button></div>`;
+    list.appendChild(div);
+  });
+}
+
+// ---- Progress ----
 function populateProgressCatSelect(){
   const sel = document.getElementById('progCatSelect');
   const prev = sel.value;
@@ -490,23 +851,20 @@ function populateProgressCatSelect(){
   });
   sel.value = prev || "__all__";
 }
-function onProgCatChange(){
-  populateProgressSelect();
-  renderProgress();
-}
+function onProgCatChange(){ populateProgressSelect(); renderProgress(); }
 function populateProgressSelect(){
   const cat = document.getElementById('progCatSelect').value;
   const sel = document.getElementById('progExSelect');
   const prev = sel.value;
   const withData = new Set(entries.filter(e=>e.clientId===activeClientId).map(e=>e.exercise));
+  const g = getGroups();
   sel.innerHTML = "";
-
   if(cat && cat !== "__all__"){
     const optGroup = document.createElement('option');
     optGroup.value = "__group__";
     optGroup.textContent = `Overall — ${cat} (all exercises)`;
     sel.appendChild(optGroup);
-    GROUPS[cat].forEach(ex=>{
+    g[cat].forEach(ex=>{
       const opt = document.createElement('option');
       opt.value = ex; opt.textContent = withData.has(ex) ? ex : `${ex} (no data yet)`;
       sel.appendChild(opt);
@@ -520,8 +878,7 @@ function populateProgressSelect(){
   }
   if(prev && Array.from(sel.options).some(o=>o.value===prev)) sel.value = prev;
 }
-
-function drawLineChart(dates, valuesByDate, unitLabel){
+function drawLineChart(dates, valuesByDate){
   const svg = document.getElementById('progChart');
   svg.innerHTML = "";
   const w = Math.max(320, dates.length*60);
@@ -551,15 +908,13 @@ function drawLineChart(dates, valuesByDate, unitLabel){
     svg.appendChild(val);
   });
 }
-
 function renderProgress(){
   const cat = document.getElementById('progCatSelect').value;
   const exVal = document.getElementById('progExSelect').value;
   const statsEl = document.getElementById('progStats');
 
   if(exVal === "__group__"){
-    // Overall volume for every exercise in this category, per date
-    const groupExercises = new Set(GROUPS[cat]);
+    const groupExercises = new Set(getGroups()[cat]);
     const catEntries = entries.filter(e=>e.clientId===activeClientId && groupExercises.has(e.exercise))
                                .sort((a,b)=>a.date.localeCompare(b.date));
     if(catEntries.length===0){
@@ -577,7 +932,7 @@ function renderProgress(){
       <div class="progStat"><div class="v">${Math.round(byDate[lastDate])}</div><div class="l">Last Session (kg)</div></div>
       <div class="progStat"><div class="v">${dates.length}</div><div class="l">Sessions</div></div>
     `;
-    drawLineChart(dates, byDate, 'kg');
+    drawLineChart(dates, byDate);
     return;
   }
 
@@ -598,55 +953,125 @@ function renderProgress(){
   const byDate = {};
   exEntries.forEach(e=>{ byDate[e.date] = Math.max(byDate[e.date]||0, e.weight); });
   const dates = Object.keys(byDate).sort();
-  drawLineChart(dates, byDate, 'kg');
+  drawLineChart(dates, byDate);
 }
 
-// ---- Schedule ----
+// ---- Schedule (with target prescriptions) ----
 function renderSchedule(){
   const list = document.getElementById('dayList');
   list.innerHTML = "";
   const clientSched = schedules[activeClientId] || {};
   DAYS.forEach(day=>{
-    const exs = clientSched[day] || [];
+    const items = clientSched[day] || [];
     const row = document.createElement('div');
     row.className = 'dayRow';
     row.onclick = ()=>openPicker(day);
-    row.innerHTML = `<div class="dname">${day}</div><div class="dcount">${exs.length ? exs.length+' exercise(s)' : 'Rest / not set'}</div>`;
+    row.innerHTML = `<div class="dname">${day}</div><div class="dcount">${items.length ? items.length+' exercise(s)' : 'Rest / not set'}</div>`;
     list.appendChild(row);
   });
 }
-
 function openPicker(day){
   pickerDay = day;
   document.getElementById('pickerTitle').textContent = `Assign exercises — ${day}`;
   const body = document.getElementById('pickerBody');
   body.innerHTML = "";
   const clientSched = schedules[activeClientId] || {};
-  const selected = new Set(clientSched[day] || []);
+  const existingList = clientSched[day] || [];
+  const existingMap = {};
+  existingList.forEach(it=>{ existingMap[it.exercise] = it; });
+  const g = getGroups();
+
   CATS.forEach(cat=>{
-    const g = document.createElement('div');
-    g.className = 'pickerGroup';
-    g.innerHTML = `<div class="gname">${cat.toUpperCase()}</div>`;
-    GROUPS[cat].forEach(ex=>{
-      const id = 'pk_' + ex.replace(/[^a-zA-Z0-9]/g,'_');
-      const r = document.createElement('label');
-      r.className = 'pickerRow';
-      r.innerHTML = `<input type="checkbox" id="${id}" value="${ex}" ${selected.has(ex)?'checked':''}> ${ex}`;
-      g.appendChild(r);
+    const gDiv = document.createElement('div');
+    gDiv.className = 'pickerGroup';
+    gDiv.dataset.cat = cat;
+    gDiv.innerHTML = `<div class="gname">${cat.toUpperCase()}</div>`;
+    g[cat].forEach(ex=>{
+      const existing = existingMap[ex];
+      const checked = !!existing;
+      const wrap = document.createElement('div');
+      wrap.className = 'pkRowWrap';
+      wrap.dataset.ex = ex;
+      wrap.innerHTML = `
+        <label class="pickerRow"><input type="checkbox" class="pkChk" ${checked?'checked':''}> ${ex}</label>
+        <div class="targetRow" style="display:${checked?'flex':'none'};">
+          <input type="number" class="pkSets" placeholder="Sets" value="${existing?.targetSets ?? ''}">
+          <input type="number" class="pkWeight" placeholder="kg" value="${existing?.targetWeight ?? ''}">
+          <input type="number" class="pkReps" placeholder="Reps" value="${existing?.targetReps ?? ''}">
+        </div>
+      `;
+      gDiv.appendChild(wrap);
     });
-    body.appendChild(g);
+    const addBtn = document.createElement('button');
+    addBtn.className = 'ghostBtn';
+    addBtn.style.marginBottom = '4px';
+    addBtn.textContent = `+ Add exercise to ${cat}`;
+    addBtn.onclick = ()=>addExerciseInPicker(cat);
+    gDiv.appendChild(addBtn);
+    body.appendChild(gDiv);
   });
+
+  body.onchange = (e)=>{
+    if(e.target.classList.contains('pkChk')){
+      const tr = e.target.closest('.pkRowWrap').querySelector('.targetRow');
+      tr.style.display = e.target.checked ? 'flex' : 'none';
+    }
+  };
   document.getElementById('pickerOverlay').classList.add('open');
 }
 function closePicker(){ document.getElementById('pickerOverlay').classList.remove('open'); pickerDay = null; }
+
+async function addExerciseInPicker(cat){
+  const name = prompt(`New exercise name (added under "${cat}"):`);
+  if(!name || !name.trim()) return;
+  const clean = name.trim();
+  CUSTOM[cat] = CUSTOM[cat] || [];
+  if(getGroups()[cat].includes(clean)){ toast('That exercise already exists'); return; }
+  CUSTOM[cat].push(clean);
+  await saveCustom();
+
+  const gDiv = document.querySelector(`.pickerGroup[data-cat="${cat}"]`);
+  const addBtn = gDiv.querySelector('.ghostBtn');
+  const wrap = document.createElement('div');
+  wrap.className = 'pkRowWrap';
+  wrap.dataset.ex = clean;
+  wrap.innerHTML = `
+    <label class="pickerRow"><input type="checkbox" class="pkChk" checked> ${clean}</label>
+    <div class="targetRow" style="display:flex;">
+      <input type="number" class="pkSets" placeholder="Sets">
+      <input type="number" class="pkWeight" placeholder="kg">
+      <input type="number" class="pkReps" placeholder="Reps">
+    </div>
+  `;
+  gDiv.insertBefore(wrap, addBtn);
+  toast(`Added "${clean}" — checked and ready for a target`);
+}
 async function savePicker(){
-  const checked = Array.from(document.querySelectorAll('#pickerBody input:checked')).map(i=>i.value);
+  const result = [];
+  document.querySelectorAll('#pickerBody .pkRowWrap').forEach(wrap=>{
+    const chk = wrap.querySelector('.pkChk');
+    if(chk.checked){
+      const sets = wrap.querySelector('.pkSets').value;
+      const weight = wrap.querySelector('.pkWeight').value;
+      const reps = wrap.querySelector('.pkReps').value;
+      result.push({
+        exercise: wrap.dataset.ex,
+        targetSets: sets ? parseInt(sets) : null,
+        targetWeight: weight ? parseFloat(weight) : null,
+        targetReps: reps ? parseInt(reps) : null
+      });
+    }
+  });
   schedules[activeClientId] = schedules[activeClientId] || {};
-  schedules[activeClientId][pickerDay] = checked;
+  schedules[activeClientId][pickerDay] = result;
   await saveSchedules();
   closePicker();
   renderSchedule();
   toast('Schedule updated');
+  if(settings.scriptUrl){
+    const cname = (clients.find(c=>c.id===activeClientId)||{}).name || "";
+    result.forEach(item=>pushScheduleItemToSheet(cname, pickerDay, item));
+  }
 }
 
 document.getElementById('dateInput').value = todayStr();
@@ -655,9 +1080,9 @@ document.getElementById('dateInput').addEventListener('change', renderExercises)
 (async function init(){
   await loadData();
   renderClientSelect();
-  showView('log');
-  if(typeof window.storage === 'undefined' || storageBroken){
-    setTimeout(()=>toast('Note: this browser can\'t save data — open via the Claude chat link'), 600);
+  showView('dashboard');
+  if(storageBroken){
+    setTimeout(()=>toast('Note: this browser can\'t save data (storage blocked/private mode)'), 600);
   }
 })();
 </script>
