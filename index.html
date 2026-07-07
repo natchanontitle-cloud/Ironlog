@@ -50,7 +50,7 @@
   .todaySets .row{display:flex; justify-content:space-between; background:var(--card2); padding:7px 10px; border-radius:6px; font-size:13px;}
   .todaySets .row button{background:none; border:none; color:var(--muted); cursor:pointer; font-size:13px;}
 
-  #dashboardView,#todayView,#historyView,#settingsView,#progressView,#scheduleView,#clientsView{display:none;}
+  #dashboardView,#todayView,#historyView,#settingsView,#progressView,#reportView,#scheduleView,#clientsView{display:none;}
   .histEntry{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:8px;}
   .histEntry .d{color:var(--accent); font-size:12px; font-weight:700; font-family:'Oswald';}
   .histEntry .ex{font-weight:600; font-size:14px; margin-top:2px;}
@@ -124,6 +124,24 @@
   .toast{position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:var(--card2); border:1px solid var(--line); color:var(--text); padding:10px 18px; border-radius:20px; font-size:13px; opacity:0; transition:opacity .2s; z-index:50;}
   .toast.show{opacity:1;}
   .empty{color:var(--muted); text-align:center; padding:30px 10px; font-size:13px;}
+  .printOnly{display:none;}
+
+  @media print{
+    body{background:#fff; color:#111; padding-bottom:0;}
+    header, .clientBar, .tabs, #gearBtn,
+    #reportView > .dateRow, #reportView > button.addBtn, .toast{ display:none !important; }
+    .printOnly{ display:block !important; }
+    main{ padding:0; }
+    .progCard, .reportCard, .bodyWidget, .clientCard, .exCard{
+      background:#fff !important; border:1px solid #ccc !important; color:#111 !important;
+    }
+    .progStat, .dashCard .stat{ background:#f2f2f2 !important; }
+    .progStat .v, .reportCard .v{ color:#c0431f !important; }
+    .fieldLabel, .muted, .l, .l2{ color:#555 !important; }
+    svg text{ fill:#111 !important; }
+    svg path{ stroke:#c0431f !important; }
+    svg circle{ fill:#c0431f !important; }
+  }
 </style>
 </head>
 <body>
@@ -155,6 +173,14 @@
       </div>
       <div class="hint">Optional — log any day, it feeds the weekly/monthly report.</div>
     </div>
+    <div class="bodyWidget">
+      <div class="fieldLabel">CARDIO — ADD MINUTES</div>
+      <div class="row">
+        <input type="number" id="cardioMinInput" placeholder="minutes" inputmode="numeric">
+        <button onclick="addCardio()">Add</button>
+      </div>
+      <div class="hint" id="cardioTodayHint">0 min logged today</div>
+    </div>
     <div id="todayList"></div>
   </div>
 
@@ -176,6 +202,41 @@
       <div class="progStats" id="progStats"></div>
       <div class="chartWrap"><svg id="progChart" width="100%" height="200"></svg></div>
     </div>
+  </div>
+
+  <div id="reportView">
+    <div class="dateRow">
+      <select id="reportPeriod" onchange="renderReport()">
+        <option value="day">Daily</option>
+        <option value="week" selected>Weekly</option>
+        <option value="month">Monthly</option>
+      </select>
+      <input type="date" id="reportDate">
+    </div>
+
+    <div id="printableReport">
+      <div id="reportHeader" class="printOnly"></div>
+      <div class="reportRow">
+        <div class="reportCard"><div class="v" id="repDaysTrained">-</div><div class="l">Days Trained</div></div>
+        <div class="reportCard"><div class="v" id="repTotalSets">-</div><div class="l">Total Sets</div></div>
+      </div>
+      <div class="progCard">
+        <div class="fieldLabel">MUSCLE GROUPS TRAINED</div>
+        <div id="repCategoryBreakdown"></div>
+      </div>
+      <div class="progCard">
+        <div class="fieldLabel">CARDIO</div>
+        <div id="repCardio"></div>
+      </div>
+      <div class="progCard">
+        <select class="progSelect" id="reportCatSelect" onchange="onReportCatChange()"></select>
+        <select class="progSelect" id="reportExSelect" onchange="renderReport()"></select>
+        <div class="progStats" id="repExStats"></div>
+        <div class="chartWrap"><svg id="reportChart" width="100%" height="200"></svg></div>
+      </div>
+    </div>
+
+    <button class="addBtn" onclick="window.print()">🖨 Print / Save as PDF</button>
   </div>
 
   <div id="historyView">
@@ -253,6 +314,7 @@ let entries = [];
 let schedules = {};
 let settings = { scriptUrl: "" };
 let bodyStats = [];
+let cardio = [];
 let CUSTOM = {};
 let pickerDay = null;
 let storageBroken = false;
@@ -329,6 +391,7 @@ async function saveSchedules(){ await safeSet('schedules', schedules); }
 async function saveSettingsData(){ await safeSet('settings', settings); }
 async function saveCustom(){ await safeSet('custom', CUSTOM); }
 async function saveBodyStats(){ await safeSet('bodyStats', bodyStats); }
+async function saveCardio(){ await safeSet('cardio', cardio); }
 
 async function loadData(){
   try{ const v = await rawGet('custom'); CUSTOM = v ? JSON.parse(v) : {}; }catch(e){ CUSTOM = {}; }
@@ -338,6 +401,7 @@ async function loadData(){
   try{ const v = await rawGet('schedules'); schedules = v ? JSON.parse(v) : {}; }catch(e){ schedules = {}; }
   try{ const v = await rawGet('settings'); settings = v ? JSON.parse(v) : {scriptUrl:""}; }catch(e){ settings = {scriptUrl:""}; }
   try{ const v = await rawGet('bodyStats'); bodyStats = v ? JSON.parse(v) : []; }catch(e){ bodyStats = []; }
+  try{ const v = await rawGet('cardio'); cardio = v ? JSON.parse(v) : []; }catch(e){ cardio = []; }
 
   // migrate old schedule format (plain exercise name strings -> objects with targets)
   let migrated = false;
@@ -354,7 +418,7 @@ async function loadData(){
   });
   if(migrated) await saveSchedules();
 
-  clients.forEach(c=>{ if(!('birthdate' in c)) c.birthdate=''; if(!('height' in c)) c.height=''; });
+  clients.forEach(c=>{ if(!('birthdate' in c)) c.birthdate=''; if(!('height' in c)) c.height=''; if(!('weeklyCardioTarget' in c)) c.weeklyCardioTarget=300; });
 
   if(clients.length===0){
     clients.push({id: uid(), name: "Me", birthdate:"", height:""});
@@ -404,6 +468,7 @@ function renderTabs(){
     ...CATS.map(c=>({key:c,label:c,type:'cat'})),
     {key:'__schedule',label:'Schedule',type:'schedule'},
     {key:'__progress',label:'Progress',type:'progress'},
+    {key:'__report',label:'Report',type:'report'},
     {key:'__history',label:'History',type:'nav'}
   ];
   items.forEach(it=>{
@@ -413,6 +478,7 @@ function renderTabs(){
                             (it.type==='today' && currentView==='today') ||
                             (it.type==='schedule' && currentView==='schedule') ||
                             (it.type==='progress' && currentView==='progress') ||
+                            (it.type==='report' && currentView==='report') ||
                             (it.type==='nav' && currentView==='history') ? ' active' : '');
     d.textContent = it.label;
     d.onclick = ()=>{
@@ -421,6 +487,7 @@ function renderTabs(){
       else if(it.type==='today'){ showView('today'); }
       else if(it.type==='schedule'){ showView('schedule'); }
       else if(it.type==='progress'){ showView('progress'); }
+      else if(it.type==='report'){ showView('report'); }
       else { showView('history'); }
     };
     el.appendChild(d);
@@ -429,10 +496,10 @@ function renderTabs(){
 
 function showView(v){
   currentView = v;
-  ['dashboardView','todayView','logView','scheduleView','progressView','historyView','clientsView','settingsView'].forEach(id=>{
+  ['dashboardView','todayView','logView','scheduleView','progressView','reportView','historyView','clientsView','settingsView'].forEach(id=>{
     document.getElementById(id).style.display = (id === v+'View') ? 'block':'none';
   });
-  const showTabs = ['dashboard','today','log','schedule','progress','history'].includes(v);
+  const showTabs = ['dashboard','today','log','schedule','progress','report','history'].includes(v);
   document.getElementById('tabs').style.display = showTabs ? 'flex':'none';
   renderTabs();
   renderClientSelect();
@@ -442,6 +509,7 @@ function showView(v){
   if(v==='schedule') renderSchedule();
   if(v==='history') renderHistory();
   if(v==='progress'){ populateProgressCatSelect(); populateProgressSelect(); renderProgress(); }
+  if(v==='report'){ populateReportCatSelect(); populateReportExSelect(); renderReport(); }
   if(v==='clients') renderClientsList();
 }
 
@@ -490,6 +558,11 @@ function renderToday(){
   // body weight widget
   const existingBW = bodyStats.find(b=>b.clientId===activeClientId && b.date===date);
   document.getElementById('bodyWeightInput').value = existingBW ? existingBW.weight : '';
+
+  // cardio widget
+  const todayCardioMin = cardio.filter(c=>c.clientId===activeClientId && c.date===date).reduce((s,c)=>s+c.minutes,0);
+  document.getElementById('cardioTodayHint').textContent = `${todayCardioMin} min logged today`;
+  document.getElementById('cardioMinInput').value = '';
 
   const list = document.getElementById('todayList');
   list.innerHTML = "";
@@ -579,6 +652,20 @@ async function saveBodyWeight(){
     pushBodyStatToSheet(cname, date, parseFloat(w));
   }
 }
+async function addCardio(){
+  const date = document.getElementById('todayDateInput').value || todayStr();
+  const m = document.getElementById('cardioMinInput').value;
+  if(!m || parseInt(m)<=0){ toast('Enter minutes first'); return; }
+  const mins = parseInt(m);
+  cardio.push({id: uid(), clientId: activeClientId, date, minutes: mins});
+  await saveCardio();
+  renderToday();
+  toast(`+${mins} min cardio logged`);
+  if(settings.scriptUrl){
+    const cname = (clients.find(c=>c.id===activeClientId)||{}).name || "";
+    pushCardioToSheet(cname, date, mins);
+  }
+}
 document.getElementById('todayDateInput').value = todayStr();
 document.getElementById('todayDateInput').addEventListener('change', renderToday);
 
@@ -659,7 +746,7 @@ async function pushEntryToSheet(entry){
   return pushToSheet({...entry, type:'entry', clientName: cname});
 }
 async function pushClientToSheet(c){
-  return pushToSheet({type:'client', id:c.id, name:c.name, birthdate:c.birthdate, height:c.height});
+  return pushToSheet({type:'client', id:c.id, name:c.name, birthdate:c.birthdate, height:c.height, weeklyCardioTarget:c.weeklyCardioTarget});
 }
 async function pushScheduleItemToSheet(clientName, day, item){
   return pushToSheet({type:'schedule', clientName, day, exercise:item.exercise,
@@ -667,6 +754,9 @@ async function pushScheduleItemToSheet(clientName, day, item){
 }
 async function pushBodyStatToSheet(clientName, date, weight){
   return pushToSheet({type:'bodyStat', clientName, date, weight});
+}
+async function pushCardioToSheet(clientName, date, minutes){
+  return pushToSheet({type:'cardio', clientName, date, minutes});
 }
 
 async function addSetCore(btn, exercise, category, getDate, rerender){
@@ -806,9 +896,11 @@ async function editClient(id){
   if(name===null) return;
   const birthdate = prompt('Birthdate (YYYY-MM-DD, blank to clear):', c.birthdate || '');
   const height = prompt('Height in cm (blank to clear):', c.height || '');
+  const cardioTarget = prompt('Weekly cardio target (minutes):', c.weeklyCardioTarget || 300);
   c.name = name.trim() || c.name;
   c.birthdate = (birthdate||'').trim();
   c.height = (height||'').trim();
+  c.weeklyCardioTarget = parseInt(cardioTarget) || 300;
   await saveClients();
   renderClientSelect();
   renderClientsList();
@@ -878,8 +970,8 @@ function populateProgressSelect(){
   }
   if(prev && Array.from(sel.options).some(o=>o.value===prev)) sel.value = prev;
 }
-function drawLineChart(dates, valuesByDate){
-  const svg = document.getElementById('progChart');
+function drawLineChart(dates, valuesByDate, svgId){
+  const svg = document.getElementById(svgId || 'progChart');
   svg.innerHTML = "";
   const w = Math.max(320, dates.length*60);
   const h=200,padL=40,padR=14,padT=14,padB=26;
@@ -955,6 +1047,155 @@ function renderProgress(){
   const dates = Object.keys(byDate).sort();
   drawLineChart(dates, byDate);
 }
+
+// ---- Report (daily/weekly/monthly, printable) ----
+function daysInMonthOf(dateStr){
+  const d = new Date(dateStr+"T00:00:00");
+  return new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+}
+function getPeriodRange(period, refDate){
+  if(period==='day'){
+    return {start:refDate, end:refDate, weeks:1/7};
+  }
+  if(period==='week'){
+    const start = mondayOf(refDate);
+    const startD = new Date(start+"T00:00:00");
+    const endD = new Date(startD); endD.setDate(startD.getDate()+6);
+    return {start, end: endD.toISOString().slice(0,10), weeks:1};
+  }
+  const ym = refDate.slice(0,7);
+  const dim = daysInMonthOf(refDate);
+  return {start: ym+'-01', end: `${ym}-${String(dim).padStart(2,'0')}`, weeks: dim/7};
+}
+function populateReportCatSelect(){
+  const sel = document.getElementById('reportCatSelect');
+  const prev = sel.value;
+  sel.innerHTML = "";
+  const optAll = document.createElement('option');
+  optAll.value = "__all__"; optAll.textContent = "All Categories";
+  sel.appendChild(optAll);
+  CATS.forEach(c=>{
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    sel.appendChild(opt);
+  });
+  sel.value = prev || "__all__";
+}
+function onReportCatChange(){ populateReportExSelect(); renderReport(); }
+function populateReportExSelect(){
+  const cat = document.getElementById('reportCatSelect').value;
+  const sel = document.getElementById('reportExSelect');
+  const prev = sel.value;
+  const g = getGroups();
+  sel.innerHTML = "";
+  if(cat && cat !== "__all__"){
+    const optGroup = document.createElement('option');
+    optGroup.value = "__group__"; optGroup.textContent = `Overall — ${cat}`;
+    sel.appendChild(optGroup);
+    g[cat].forEach(ex=>{
+      const opt = document.createElement('option'); opt.value = ex; opt.textContent = ex;
+      sel.appendChild(opt);
+    });
+  } else {
+    const optOverall = document.createElement('option');
+    optOverall.value = "__overall__"; optOverall.textContent = "Overall (all exercises)";
+    sel.appendChild(optOverall);
+    allExercisesFlat().forEach(ex=>{
+      const opt = document.createElement('option'); opt.value = ex; opt.textContent = ex;
+      sel.appendChild(opt);
+    });
+  }
+  if(prev && Array.from(sel.options).some(o=>o.value===prev)) sel.value = prev;
+}
+function renderReport(){
+  const period = document.getElementById('reportPeriod').value;
+  const dateInput = document.getElementById('reportDate');
+  const refDate = dateInput.value || todayStr();
+  dateInput.value = refDate;
+  const range = getPeriodRange(period, refDate);
+  const client = clients.find(c=>c.id===activeClientId) || {};
+  const inRange = d => d >= range.start && d <= range.end;
+  const clientEntries = entries.filter(e=>e.clientId===activeClientId && inRange(e.date));
+
+  const periodLabel = period==='day' ? 'Daily' : period==='week' ? 'Weekly' : 'Monthly';
+  document.getElementById('reportHeader').innerHTML = `
+    <h2 style="font-family:'Oswald'; margin:0 0 4px;">${client.name || ''} — ${periodLabel} Report</h2>
+    <div style="color:var(--muted); font-size:12px; margin-bottom:14px;">${range.start}${range.start!==range.end ? ' to '+range.end : ''}</div>
+  `;
+
+  document.getElementById('repDaysTrained').textContent = new Set(clientEntries.map(e=>e.date)).size;
+  document.getElementById('repTotalSets').textContent = clientEntries.length;
+
+  const catDays = {};
+  clientEntries.forEach(e=>{
+    const cat = findCategoryOf(e.exercise);
+    catDays[cat] = catDays[cat] || new Set();
+    catDays[cat].add(e.date);
+  });
+  const breakdownEl = document.getElementById('repCategoryBreakdown');
+  const activeCats = CATS.filter(c=>catDays[c] && catDays[c].size>0);
+  breakdownEl.innerHTML = activeCats.length===0
+    ? '<div class="empty" style="padding:10px 0;">No training logged in this period.</div>'
+    : activeCats.map(c=>`
+        <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--line); font-size:13px;">
+          <span>${c}</span><span style="color:var(--accent); font-weight:600;">${catDays[c].size} day${catDays[c].size===1?'':'s'}</span>
+        </div>`).join('');
+
+  const clientCardio = cardio.filter(c=>c.clientId===activeClientId && inRange(c.date));
+  const totalCardioMin = clientCardio.reduce((s,c)=>s+c.minutes,0);
+  const weeklyTarget = client.weeklyCardioTarget || 300;
+  const targetForPeriod = Math.round(weeklyTarget * range.weeks);
+  const pct = targetForPeriod>0 ? Math.round((totalCardioMin/targetForPeriod)*100) : 0;
+  document.getElementById('repCardio').innerHTML = `
+    <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
+      <span>${totalCardioMin} / ${targetForPeriod} min</span>
+      <span style="color:${pct>=100?'var(--good)':'var(--accent)'}; font-weight:700;">${pct}%</span>
+    </div>
+    <div style="background:var(--card2); border-radius:6px; overflow:hidden; height:8px;">
+      <div style="background:${pct>=100?'var(--good)':'var(--accent)'}; height:8px; width:${Math.min(pct,100)}%;"></div>
+    </div>
+  `;
+
+  const cat = document.getElementById('reportCatSelect').value;
+  const exVal = document.getElementById('reportExSelect').value;
+  const statsEl = document.getElementById('repExStats');
+  const isAggregate = (exVal === '__overall__' || exVal === '__group__');
+  let trendEntries;
+  if(isAggregate){
+    const scope = exVal==='__group__' ? new Set(getGroups()[cat]) : null;
+    trendEntries = entries.filter(e=>e.clientId===activeClientId && inRange(e.date) && (!scope || scope.has(e.exercise)));
+  } else {
+    trendEntries = entries.filter(e=>e.clientId===activeClientId && inRange(e.date) && e.exercise===exVal);
+  }
+  trendEntries.sort((a,b)=>a.date.localeCompare(b.date));
+
+  if(trendEntries.length===0){
+    statsEl.innerHTML = '<div class="empty" style="flex:1;">No sets in this period for this selection.</div>';
+    document.getElementById('reportChart').innerHTML = "";
+  } else if(isAggregate){
+    const byDate = {};
+    trendEntries.forEach(e=>{ byDate[e.date] = (byDate[e.date]||0) + e.weight*e.reps; });
+    const dates = Object.keys(byDate).sort();
+    const totalVol = trendEntries.reduce((s,e)=>s+e.weight*e.reps,0);
+    statsEl.innerHTML = `
+      <div class="progStat"><div class="v">${Math.round(totalVol)}</div><div class="l">Total Volume (kg)</div></div>
+      <div class="progStat"><div class="v">${dates.length}</div><div class="l">Sessions</div></div>
+    `;
+    drawLineChart(dates, byDate, 'reportChart');
+  } else {
+    const byDate = {};
+    trendEntries.forEach(e=>{ byDate[e.date] = Math.max(byDate[e.date]||0, e.weight); });
+    const dates = Object.keys(byDate).sort();
+    const maxW = Math.max(...trendEntries.map(e=>e.weight));
+    statsEl.innerHTML = `
+      <div class="progStat"><div class="v">${maxW}kg</div><div class="l">Best Weight</div></div>
+      <div class="progStat"><div class="v">${trendEntries.length}</div><div class="l">Sets</div></div>
+    `;
+    drawLineChart(dates, byDate, 'reportChart');
+  }
+}
+document.getElementById('reportDate').value = todayStr();
+document.getElementById('reportDate').addEventListener('change', renderReport);
 
 // ---- Schedule (with target prescriptions) ----
 function renderSchedule(){
