@@ -272,6 +272,12 @@
       new client, schedule change, and body-weight entry auto-syncs the moment it's saved — this URL is only needed for that.</p>
     </div>
     <div class="settingsBox">
+      <label>Sync Across Devices</label>
+      <p>The app auto-pulls the latest data from the Sheet every time it opens (so a new client added on your phone
+      will show up on your computer too, and vice versa). Use this button to refresh manually without reopening the app.</p>
+      <button class="addBtn" onclick="pullFromSheet(false)">⟳ Pull Latest from Sheet</button>
+    </div>
+    <div class="settingsBox">
       <label style="color:#ff8a65;">Danger Zone</label>
       <p>Erases everything stored in this browser only (clients, schedules, logged sets, body stats, the Sheet URL).
       Your Google Sheet is untouched — it's a separate, permanent copy. Use this to start fresh locally.</p>
@@ -748,15 +754,81 @@ async function pushEntryToSheet(entry){
 async function pushClientToSheet(c){
   return pushToSheet({type:'client', id:c.id, name:c.name, birthdate:c.birthdate, height:c.height, weeklyCardioTarget:c.weeklyCardioTarget});
 }
-async function pushScheduleItemToSheet(clientName, day, item){
-  return pushToSheet({type:'schedule', clientName, day, exercise:item.exercise,
-    targetSets:item.targetSets, targetWeight:item.targetWeight, targetReps:item.targetReps});
+async function pushScheduleReplaceToSheet(clientName, day, items){
+  return pushToSheet({type:'scheduleReplace', clientName, day, items});
 }
 async function pushBodyStatToSheet(clientName, date, weight){
   return pushToSheet({type:'bodyStat', clientName, date, weight});
 }
 async function pushCardioToSheet(clientName, date, minutes){
   return pushToSheet({type:'cardio', clientName, date, minutes});
+}
+
+// ---- Pull latest state from the Sheet (makes every device/browser see the same data) ----
+async function pullFromSheet(silent){
+  if(!settings.scriptUrl){ if(!silent) toast('Add your Apps Script URL first'); return false; }
+  try{
+    const res = await fetch(settings.scriptUrl, { method:'GET' });
+    const data = await res.json();
+
+    const newClients = (data.clients||[]).map(r=>({
+      id: r[0], name: r[1], birthdate: r[2] || '', height: r[3] || '', weeklyCardioTarget: r[4] || 300
+    })).filter(c=>c.id);
+    if(newClients.length===0){ if(!silent) toast('Sheet has no clients yet'); return false; }
+    const nameToId = {};
+    newClients.forEach(c=>{ nameToId[c.name] = c.id; });
+
+    const newSchedules = {};
+    (data.schedules||[]).forEach(r=>{
+      const [clientName, day, exercise, targetSets, targetWeight, targetReps] = r;
+      const cid = nameToId[clientName];
+      if(!cid) return;
+      newSchedules[cid] = newSchedules[cid] || {};
+      newSchedules[cid][day] = newSchedules[cid][day] || [];
+      newSchedules[cid][day].push({
+        exercise,
+        targetSets: targetSets || null, targetWeight: targetWeight || null, targetReps: targetReps || null
+      });
+    });
+
+    const newBodyStats = [];
+    (data.bodyStats||[]).forEach(r=>{
+      const [clientName, date, weight] = r;
+      const cid = nameToId[clientName];
+      if(!cid) return;
+      newBodyStats.push({id: uid(), clientId: cid, date, weight});
+    });
+
+    const newCardio = [];
+    (data.cardio||[]).forEach(r=>{
+      const [clientName, date, minutes] = r;
+      const cid = nameToId[clientName];
+      if(!cid) return;
+      newCardio.push({id: uid(), clientId: cid, date, minutes});
+    });
+
+    const newEntries = [];
+    (data.entries||[]).forEach(r=>{
+      const [clientName, date, category, exercise, weight, reps] = r;
+      const cid = nameToId[clientName];
+      if(!cid) return;
+      newEntries.push({id: uid(), clientId: cid, date, category, exercise, weight, reps, synced:true});
+    });
+
+    clients = newClients;
+    schedules = newSchedules;
+    bodyStats = newBodyStats;
+    cardio = newCardio;
+    entries = newEntries;
+    if(!clients.find(c=>c.id===activeClientId)) activeClientId = clients[0].id;
+
+    await Promise.all([saveClients(), saveSchedules(), saveBodyStats(), saveCardio(), saveEntries(), saveActiveClient()]);
+    if(!silent) toast('Synced latest from Sheet');
+    return true;
+  }catch(err){
+    if(!silent) toast('Could not reach the Sheet — check the URL / your connection');
+    return false;
+  }
 }
 
 async function addSetCore(btn, exercise, category, getDate, rerender){
@@ -847,6 +919,10 @@ async function saveSettings(){
   settings.scriptUrl = document.getElementById('scriptUrlInput').value.trim();
   await saveSettingsData();
   toast('Settings saved');
+  if(settings.scriptUrl){
+    const ok = await pullFromSheet(true);
+    if(ok){ renderClientSelect(); showView(currentView); toast('Settings saved — synced from Sheet'); }
+  }
 }
 
 async function clearAllLocalData(){
@@ -1311,7 +1387,7 @@ async function savePicker(){
   toast('Schedule updated');
   if(settings.scriptUrl){
     const cname = (clients.find(c=>c.id===activeClientId)||{}).name || "";
-    result.forEach(item=>pushScheduleItemToSheet(cname, pickerDay, item));
+    pushScheduleReplaceToSheet(cname, pickerDay, result);
   }
 }
 
@@ -1324,6 +1400,10 @@ document.getElementById('dateInput').addEventListener('change', renderExercises)
   showView('dashboard');
   if(storageBroken){
     setTimeout(()=>toast('Note: this browser can\'t save data (storage blocked/private mode)'), 600);
+  }
+  if(settings.scriptUrl){
+    const ok = await pullFromSheet(true);
+    if(ok){ renderClientSelect(); showView(currentView); }
   }
 })();
 </script>
