@@ -318,6 +318,10 @@ let clients = [];
 let activeClientId = null;
 let entries = [];
 let schedules = {};
+// Baked-in default so anyone opening this link (even a brand-new browser) auto-syncs.
+// Change this if you redeploy the Apps Script and get a new URL.
+const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAfEITCCJoyUnSrDQB_-goVFRzZMlnEZwIL0X1mcXSh2su0_luz0Cd2G_9Ud91VMKuhg/exec";
+
 let settings = { scriptUrl: "" };
 let bodyStats = [];
 let cardio = [];
@@ -406,6 +410,10 @@ async function loadData(){
   try{ const v = await rawGet('entries'); entries = v ? JSON.parse(v) : []; }catch(e){ entries = []; }
   try{ const v = await rawGet('schedules'); schedules = v ? JSON.parse(v) : {}; }catch(e){ schedules = {}; }
   try{ const v = await rawGet('settings'); settings = v ? JSON.parse(v) : {scriptUrl:""}; }catch(e){ settings = {scriptUrl:""}; }
+  if(!settings.scriptUrl && DEFAULT_SCRIPT_URL){
+    settings.scriptUrl = DEFAULT_SCRIPT_URL;
+    await saveSettingsData();
+  }
   try{ const v = await rawGet('bodyStats'); bodyStats = v ? JSON.parse(v) : []; }catch(e){ bodyStats = []; }
   try{ const v = await rawGet('cardio'); cardio = v ? JSON.parse(v) : []; }catch(e){ cardio = []; }
 
